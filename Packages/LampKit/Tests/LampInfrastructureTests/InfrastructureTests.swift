@@ -15,6 +15,20 @@ import LampDomain
         #expect(String(decoding: try JSONEncoder().encode(EntitiesRequest(entityType: nil)), as: UTF8.self) == "{}")
     }
 
+    /// GetEntity on a container of OliveTin 3000.22's Docker sample: its own Start and Stop.
+    @Test func entityActionsWithPresets() throws {
+        let json = """
+        {"title":"4bafe6f9f956","uniqueKey":"0","fields":{"Names":"media-indexer"},"relatedActions":[
+          {"action":{"bindingId":"88da","title":"Start media-indexer","canExec":true,"arguments":[],"justification":""},"prefilledArguments":{}},
+          {"action":{"bindingId":"e038","title":"Restart","canExec":true,"arguments":[{"name":"container","type":"ascii_identifier"}]},
+           "prefilledArguments":{"container":"media-indexer"}}]}
+        """
+        let actions = try JSONDecoder().decode(EntityMessage.self, from: Data(json.utf8)).actions
+        #expect(actions.map(\.title) == ["Start media-indexer", "Restart"])
+        #expect(actions[1].launch == .direct)
+        #expect(actions[1].startArguments() == ["container": "media-indexer"])
+    }
+
     /// "Delete old backups" from OliveTin 3000.22's own sample config.
     @Test func reasonUnnamedConfirmationAndHTMLFromTheSampleConfig() throws {
         let json = """

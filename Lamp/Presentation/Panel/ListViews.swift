@@ -8,7 +8,9 @@ struct MachineList: View {
     let types: [String]
     /// nil: the list is hidden.
     let type: String?
-    let choose: @MainActor @Sendable (String) -> Void
+    let model: PanelViewModel
+    let controller: PanelController
+    @State private var opened: Machine.ID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -29,10 +31,10 @@ struct MachineList: View {
     private var heading: some View {
         Menu {
             ForEach(types, id: \.self) { item in
-                Toggle(Self.title(of: item), isOn: Binding(get: { item == type }, set: { _ in choose(item) }))
+                Toggle(Self.title(of: item), isOn: Binding(get: { item == type }, set: { _ in controller.showEntities(item) }))
             }
             Divider()
-            Toggle("Hide", isOn: Binding(get: { type == nil }, set: { _ in choose("") }))
+            Toggle("Hide", isOn: Binding(get: { type == nil }, set: { _ in controller.showEntities("") }))
         } label: {
             HStack(spacing: 4) {
                 Text(type.map(Self.title(of:)) ?? String(localized: "Entities"))
@@ -56,7 +58,16 @@ struct MachineList: View {
         type == "machine" ? String(localized: "Machines") : type.prefix(1).uppercased() + type.dropFirst()
     }
 
+    /// A click shows what OliveTin offers for the machine.
     private func cell(_ machine: Machine) -> some View {
+        Button { opened = machine.id } label: { label(machine) }
+            .buttonStyle(.plain)
+            .popover(isPresented: Binding(get: { opened == machine.id }, set: { if !$0 { opened = nil } }), arrowEdge: .bottom) {
+                MachineActions(machine: machine, model: model, controller: controller)
+            }
+    }
+
+    private func label(_ machine: Machine) -> some View {
         HStack(spacing: 8) {
             Circle().fill(color(machine.health)).frame(width: 8, height: 8)
             Text(machine.name)
@@ -82,6 +93,7 @@ struct MachineList: View {
         .help([machine.name, machine.kind, machine.note].compactMap { $0 }.joined(separator: " · "))
         .accessibilityElement(children: .combine)
         .accessibilityValue(Text(healthText(machine.health)))
+        .accessibilityHint(Text("Shows its actions"))
     }
 
     private func color(_ health: Machine.Health) -> Color {
@@ -108,6 +120,53 @@ struct MachineList: View {
         case .failing: String(localized: "Failing")
         case .off: String(localized: "Off")
         case .unknown: String(localized: "Unknown")
+        }
+    }
+}
+
+/// The actions of one machine, read when its popover opens. It closes once one of them starts, so the run shows in
+/// the panel.
+private struct MachineActions: View {
+    let machine: Machine
+    let model: PanelViewModel
+    let controller: PanelController
+    @State private var actions: [Action]?
+    @State private var failed = false
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(machine.name)
+                .font(.system(size: 13, weight: .semibold))
+                .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+            if let actions, !actions.isEmpty {
+                ForEach(actions) { action in
+                    ActionRow(action: action, model: model, controller: controller)
+                }
+            } else {
+                Group {
+                    if failed {
+                        Text("Could not read its actions")
+                    } else if actions == nil {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Text("No actions for this machine")
+                    }
+                }
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+            }
+        }
+        .padding(8)
+        .frame(width: 320)
+        .task {
+            let read = await controller.actions(of: machine)
+            failed = read == nil
+            actions = read ?? []
+        }
+        .onChange(of: model.run?.execution.id) { _, started in
+            if started != nil { dismiss() }
         }
     }
 }

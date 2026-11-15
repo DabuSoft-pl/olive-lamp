@@ -61,6 +61,10 @@ struct HTTPOliveTinGateway: OliveTinGateway {
         }
     }
 
+    func relatedActions(entityType: String, key: String) async throws -> [Action] {
+        try await client.call("GetEntity", EntityRequest(type: entityType, uniqueKey: key), as: EntityMessage.self).actions
+    }
+
     func start(actionID: String, arguments: [String: String], justification: String?) async throws -> String {
         let request = StartRequest(
             bindingId: actionID,

@@ -120,6 +120,10 @@ private struct DemoGateway: OliveTinGateway {
         ]
     }
 
+    func relatedActions(entityType: String, key: String) async throws -> [Action] {
+        [Action(id: "restart-\(key)", title: "Restart \(key)"), Action(id: "update-\(key)", title: "Update \(key)")]
+    }
+
     func start(actionID: String, arguments: [String: String], justification: String?) async throws -> String { "run" }
 
     func execution(id: String) async throws -> Execution { Self.running }

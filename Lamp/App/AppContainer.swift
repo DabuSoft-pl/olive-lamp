@@ -33,6 +33,7 @@ final class AppContainer {
             runAction: runAction,
             stopRun: StopRun(directory: directory, runs: runAction),
             chooseEntities: ChooseEntities(directory: directory),
+            loadMachineActions: LoadMachineActions(directory: directory),
             preferences: preferences,
             linkToken: catalog?.token
         )

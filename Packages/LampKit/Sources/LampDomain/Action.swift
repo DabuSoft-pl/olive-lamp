@@ -12,11 +12,15 @@ public struct Action: Identifiable, Equatable, Sendable {
     public var arguments: [ActionArgument]
     /// Set when OliveTin wants a reason before it runs the action: the text to start from, often empty.
     public var justification: String?
+    /// Arguments OliveTin fills in itself, such as the machine a machine's own action is for: sent as they are, never
+    /// asked.
+    public var presets: [String: String]
 
     public init(
         id: String, title: String, group: String? = nil, section: String? = nil, canRun: Bool = true, isRunning: Bool = false,
-        arguments: [ActionArgument] = [], justification: String? = nil
+        arguments: [ActionArgument] = [], justification: String? = nil, presets: [String: String] = [:]
     ) {
+        self.presets = presets
         self.id = id
         self.title = title
         self.group = group
@@ -32,7 +36,7 @@ public struct Action: Identifiable, Equatable, Sendable {
 
     /// How the app can start the action.
     public var launch: Launch {
-        let asked = arguments.filter { $0.kind != .confirmation && $0.kind != .display }
+        let asked = arguments.filter { $0.kind != .confirmation && $0.kind != .display && presets[$0.name] == nil }
         if asked.isEmpty { return .direct }
         let lists = asked.allSatisfy { if case .choice(let choices) = $0.kind { !choices.isEmpty } else { false } }
         return lists ? .pick(asked) : .inBrowser
@@ -41,8 +45,8 @@ public struct Action: Identifiable, Equatable, Sendable {
     /// The arguments to send: the user's picks by argument name (else the list's default), and "1" for the
     /// confirmation (it guards against accidents, not access).
     public func startArguments(picked: [String: String] = [:]) -> [String: String] {
-        var values: [String: String] = [:]
-        for argument in arguments {
+        var values = presets
+        for argument in arguments where presets[argument.name] == nil {
             switch argument.kind {
             case .confirmation:
                 values[argument.name] = "1"

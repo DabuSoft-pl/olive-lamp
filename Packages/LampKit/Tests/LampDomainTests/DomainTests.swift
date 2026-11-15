@@ -170,6 +170,17 @@ import Testing
     }
 }
 
+@Suite struct PresetTests {
+    @Test func presetArgumentsAreSentAndNeverAsked() {
+        let host = ActionArgument(name: "host", title: "Host", kind: .choice([.init(value: "nas", title: "nas"), .init(value: "pve", title: "pve")]))
+        let mode = ActionArgument(name: "mode", title: "Mode", kind: .choice([.init(value: "soft", title: "soft")]))
+        let restart = Action(id: "r", title: "Restart", arguments: [host, mode], presets: ["host": "pve"])
+        #expect(restart.launch == .pick([mode]))
+        #expect(restart.startArguments(picked: ["host": "nas"]) == ["host": "pve", "mode": "soft"])
+        #expect(Action(id: "s", title: "Start", arguments: [host], presets: ["host": "nas"]).launch == .direct)
+    }
+}
+
 @Suite struct LogLineTests {
     @Test func tailKeepsLineNumbersAsTheLogGrows() {
         var run = Execution(id: "r", actionID: "a", actionTitle: "A", output: "PLAY [all] ****\n\nok: [nas]\n")

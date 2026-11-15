@@ -11,6 +11,7 @@ final class PanelController {
     private let runAction: RunAction
     private let stopRun: StopRun
     private let chooseEntities: ChooseEntities
+    private let loadMachineActions: LoadMachineActions
     private let preferences: Preferences
     /// The token `olivelamp://run` links must carry; nil turns links off.
     private let linkToken: String?
@@ -19,7 +20,8 @@ final class PanelController {
 
     init(
         model: PanelViewModel, directory: ServerDirectory, refreshOverview: RefreshOverview, runAction: RunAction,
-        stopRun: StopRun, chooseEntities: ChooseEntities, preferences: Preferences,
+        stopRun: StopRun, chooseEntities: ChooseEntities, loadMachineActions: LoadMachineActions,
+        preferences: Preferences,
         linkToken: String? = nil
     ) {
         self.linkToken = linkToken
@@ -29,6 +31,7 @@ final class PanelController {
         self.runAction = runAction
         self.stopRun = stopRun
         self.chooseEntities = chooseEntities
+        self.loadMachineActions = loadMachineActions
         self.preferences = preferences
         syncServers()
     }
@@ -85,6 +88,12 @@ final class PanelController {
         refreshing?.cancel()
         refreshing = nil
         refresh()
+    }
+
+    /// The actions OliveTin offers for one machine; nil when the server could not be read.
+    func actions(of machine: Machine) async -> [Action]? {
+        guard let type = model.overview?.entityType else { return [] }
+        return try? await loadMachineActions(machine, entityType: type)
     }
 
     /// Runs an action from an `olivelamp://run` link, on a fresh read of its server, by the same rules as the panel.

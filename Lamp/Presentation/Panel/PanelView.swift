@@ -129,7 +129,7 @@ struct PanelView: View {
             if !overview.entityTypes.isEmpty {
                 MachineList(
                     machines: overview.machines, types: overview.entityTypes, type: overview.entityType,
-                    choose: actions.showEntities
+                    model: model, controller: actions
                 )
                 Divider().padding(.horizontal, 16).padding(.vertical, 8)
             }

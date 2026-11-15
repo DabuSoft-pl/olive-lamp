@@ -23,7 +23,8 @@ It works with a stock OliveTin 3000; nothing has to be installed on the server.
 - **A running action reads like an instrument:** elapsed time, how long it usually takes, the last lines of its log,
   and the whole log a click away.
 - **Machines, containers or any other entities.** Pick the entity type in the section heading. The state comes from a
-  `state` or `status` field (`ok`, `running`, `exited`, `failed`, …), the name from `name` or Docker's `Names`.
+  `state` or `status` field (`ok`, `running`, `exited`, `failed`, …), the name from `name` or Docker's `Names`. Click one for the actions OliveTin offers for
+  it, such as a container's own Start and Stop.
 - **Signs in the way your server expects:** nothing at all behind Tailscale Serve or for guests, an OliveTin API key,
   your own headers (a JWT, a Cloudflare Access service token), or the server's own sign-in page.
 - **Several servers**, switched from the panel or the right-click menu.

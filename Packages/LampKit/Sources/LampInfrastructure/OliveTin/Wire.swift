@@ -158,6 +158,21 @@ struct EntityMessage: Decodable {
     var title: String?
     var uniqueKey: String?
     var fields: [String: String]?
+    /// Only `GetEntity` fills these; the list leaves them empty.
+    var relatedActions: [Related]?
+
+    struct Related: Decodable {
+        var action: ActionMessage?
+        var prefilledArguments: [String: String]?
+    }
+
+    var actions: [Action] {
+        (relatedActions ?? []).compactMap { related in
+            guard var action = related.action?.action(group: nil, section: nil) else { return nil }
+            action.presets = related.prefilledArguments ?? [:]
+            return action
+        }
+    }
 }
 
 struct StartRequest: Encodable, Sendable {

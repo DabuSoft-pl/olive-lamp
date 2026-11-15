@@ -10,6 +10,8 @@ public protocol OliveTinGateway: Sendable {
     func entityTypes() async throws -> [String]
     /// The entities of one type, each read as a machine.
     func machines(entityType: String) async throws -> [Machine]
+    /// The actions OliveTin offers for one entity, with their preset arguments.
+    func relatedActions(entityType: String, key: String) async throws -> [Action]
     /// Starts an action and returns its execution tracking id.
     /// `justification` is the user's reason, for an action that asks for one.
     func start(actionID: String, arguments: [String: String], justification: String?) async throws -> String

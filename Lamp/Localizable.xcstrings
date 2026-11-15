@@ -1170,6 +1170,36 @@
           }
         }
       }
+    },
+    "Shows its actions" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokazuje jej akcje"
+          }
+        }
+      }
+    },
+    "Could not read its actions" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się odczytać jej akcji"
+          }
+        }
+      }
+    },
+    "No actions for this machine" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta maszyna nie ma akcji"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

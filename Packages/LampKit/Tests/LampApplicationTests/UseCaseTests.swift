@@ -28,6 +28,10 @@ final class FakeGateway: OliveTinGateway, @unchecked Sendable {
 
     func entityTypes() async throws -> [String] { types }
 
+    func relatedActions(entityType: String, key: String) async throws -> [Action] {
+        [Action(id: "start-\(key)", title: "Start \(key)"), Action(id: "hidden", title: "Hidden", canRun: false)]
+    }
+
     func machines(entityType: String) async throws -> [Machine] {
         listed.append(entityType)
         if let machineError { throw machineError }
@@ -221,6 +225,11 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         #expect(gateway.listed == ["container"])
         #expect(recorder.overviews.last?.machines.isEmpty == true)
         #expect(recorder.overviews.last?.entityType == nil)
+    }
+
+    @Test func machineActionsAreTheRunnableOnes() async throws {
+        let actions = try await LoadMachineActions(directory: directory())(Machine(id: "nas", name: "nas"), entityType: "machine")
+        #expect(actions.map(\.id) == ["start-nas"])
     }
 
     @Test func guestOnALockedServerMustSignIn() async {
