@@ -3,16 +3,25 @@ public struct Action: Identifiable, Equatable, Sendable {
     /// OliveTin's binding id.
     public let id: String
     public var title: String
-    /// The fieldset the action sits in on its dashboard, if any.
+    /// Where the panel files it: the fieldset on the one dashboard, or the dashboard when there are several.
     public var group: String?
+    /// With several dashboards, the fieldset inside the group, shown as a heading.
+    public var section: String?
     public var canRun: Bool
     public var isRunning: Bool
     public var arguments: [ActionArgument]
+    /// Set when OliveTin wants a reason before it runs the action: the text to start from, often empty.
+    public var justification: String?
 
-    public init(id: String, title: String, group: String? = nil, canRun: Bool = true, isRunning: Bool = false, arguments: [ActionArgument] = []) {
+    public init(
+        id: String, title: String, group: String? = nil, section: String? = nil, canRun: Bool = true, isRunning: Bool = false,
+        arguments: [ActionArgument] = [], justification: String? = nil
+    ) {
         self.id = id
         self.title = title
         self.group = group
+        self.section = section
+        self.justification = justification
         self.canRun = canRun
         self.isRunning = isRunning
         self.arguments = arguments
@@ -23,7 +32,7 @@ public struct Action: Identifiable, Equatable, Sendable {
 
     /// How the app can start the action.
     public var launch: Launch {
-        let asked = arguments.filter { $0.kind != .confirmation }
+        let asked = arguments.filter { $0.kind != .confirmation && $0.kind != .display }
         if asked.isEmpty { return .direct }
         let lists = asked.allSatisfy { if case .choice(let choices) = $0.kind { !choices.isEmpty } else { false } }
         return lists ? .pick(asked) : .inBrowser
@@ -39,7 +48,7 @@ public struct Action: Identifiable, Equatable, Sendable {
                 values[argument.name] = "1"
             case .choice:
                 if let value = picked[argument.name] ?? argument.initialChoice { values[argument.name] = value }
-            case .other:
+            case .other, .display:
                 break
             }
         }
@@ -78,6 +87,8 @@ public struct ActionArgument: Equatable, Sendable {
 
     public enum Kind: Equatable, Sendable {
         case confirmation
+        /// Text for the web page to show (OliveTin's `html` type); nothing to ask or send.
+        case display
         case choice([Choice])
         case other(String)
     }

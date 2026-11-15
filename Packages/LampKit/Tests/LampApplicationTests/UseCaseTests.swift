@@ -12,6 +12,7 @@ final class FakeGateway: OliveTinGateway, @unchecked Sendable {
     /// Successive answers to `execution(id:)`; the last one repeats.
     var reads: [Execution] = []
     var started: [(String, [String: String])] = []
+    var reasons: [String?] = []
     var stopped: [String] = []
     private var readIndex = 0
 
@@ -27,9 +28,10 @@ final class FakeGateway: OliveTinGateway, @unchecked Sendable {
         return [Machine(id: "0", name: "pve", health: .ok)]
     }
 
-    func start(actionID: String, arguments: [String: String]) async throws -> String {
+    func start(actionID: String, arguments: [String: String], justification: String?) async throws -> String {
         if let startError { throw startError }
         started.append((actionID, arguments))
+        reasons.append(justification)
         return "run-1"
     }
 
@@ -157,6 +159,16 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
 
         #expect(gateways.addresses == [home.address])
         #expect(gateway.stopped == ["run-1"])
+    }
+
+    @Test func aReasonGoesOnlyWithAnActionThatAsksForOne() async {
+        var done = running()
+        done.isFinished = true
+        gateway.reads = [done]
+        let run = RunAction(directory: directory(), clock: InstantClock(), output: recorder, notifier: nil)
+        await run(Action(id: "prune", title: "Prune", justification: ""), reason: "  disk full \n", history: [], notify: false)
+        await run(Action(id: "check", title: "Check"), reason: "ignored", history: [], notify: false)
+        #expect(gateway.reasons == ["disk full", nil])
     }
 
     @Test func noNotificationWhenNotAsked() async {

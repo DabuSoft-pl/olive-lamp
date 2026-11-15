@@ -24,14 +24,15 @@ public final class RunAction {
         self.notifier = notifier
     }
 
-    /// Starts `action` with `picked`, the user's choice per list argument (the rest take their defaults).
-    /// `history` gives the estimate; `notify` sends a notification when the run ends.
-    public func callAsFunction(_ action: Action, picked: [String: String] = [:], history: [Execution], notify: Bool) async {
+    /// Starts `action` with `picked`, the user's choice per list argument (the rest take their defaults), and `reason`
+    /// when the action asks for one. `history` gives the estimate; `notify` sends a notification when the run ends.
+    public func callAsFunction(_ action: Action, picked: [String: String] = [:], reason: String? = nil, history: [Execution], notify: Bool) async {
         guard let server = directory.selected else { return }
         let gateway = directory.gateway(for: server)
         let id: String
         do {
-            id = try await gateway.start(actionID: action.id, arguments: action.startArguments(picked: picked))
+            let justification = action.justification == nil ? nil : reason?.trimmingCharacters(in: .whitespacesAndNewlines)
+            id = try await gateway.start(actionID: action.id, arguments: action.startArguments(picked: picked), justification: justification)
         } catch {
             output?.showStartFailed(GatewayError.from(error), action: action)
             return

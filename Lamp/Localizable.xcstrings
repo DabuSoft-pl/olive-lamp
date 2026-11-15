@@ -361,6 +361,26 @@
         }
       }
     },
+    "Give a reason to run it" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podaj powód, aby uruchomić"
+          }
+        }
+      }
+    },
+    "Group" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grupa"
+          }
+        }
+      }
+    },
     "Header" : {
       "localizations" : {
         "pl" : {
@@ -617,6 +637,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zakończ Olive Lamp"
+          }
+        }
+      }
+    },
+    "Reason" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Powód"
           }
         }
       }
@@ -927,6 +957,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logowanie przez stronę"
+          }
+        }
+      }
+    },
+    "Why you run it" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dlaczego to uruchamiasz"
           }
         }
       }

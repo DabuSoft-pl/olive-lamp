@@ -93,7 +93,16 @@ struct ActionList: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
                 Spacer()
-                if groups.count > 1 {
+                if groups.count > 3 {
+                    // Many dashboards or fieldsets: a menu, since a row of tabs would not fit.
+                    Picker("Group", selection: Binding(get: { shown ?? "" }, set: { group = $0 })) {
+                        ForEach(groups, id: \.self) { name in Text(name).tag(name) }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .controlSize(.small)
+                    .fixedSize()
+                } else if groups.count > 1 {
                     ForEach(groups, id: \.self) { name in
                         Button(name) { group = name }
                             .buttonStyle(.plain)
@@ -113,9 +122,20 @@ struct ActionList: View {
                     .foregroundStyle(.secondary)
                     .padding(16)
             }
-            VStack(spacing: 0) {
-                ForEach(actions.filter { shown == nil || ($0.group ?? Self.ungrouped) == shown }) { action in
-                    ActionRow(action: action, model: model, controller: controller)
+            VStack(alignment: .leading, spacing: 0) {
+                let visible = actions.filter { shown == nil || ($0.group ?? Self.ungrouped) == shown }
+                let openers = Self.sectionOpeners(in: visible)
+                ForEach(visible) { action in
+                    VStack(alignment: .leading, spacing: 0) {
+                        // With several dashboards, a fieldset reads as a heading over its actions.
+                        if let section = action.section, openers.contains(action.id) {
+                            Text(section)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.secondary)
+                                .padding(EdgeInsets(top: action.id == visible.first?.id ? 4 : 12, leading: 8, bottom: 2, trailing: 8))
+                        }
+                        ActionRow(action: action, model: model, controller: controller)
+                    }
                 }
             }
             .padding(EdgeInsets(top: 4, leading: 8, bottom: 8, trailing: 8))
@@ -123,6 +143,17 @@ struct ActionList: View {
     }
 
     static let ungrouped = String(localized: "Other")
+
+    /// The actions that start a new section, so each heading shows once.
+    static func sectionOpeners(in actions: [Action]) -> Set<String> {
+        var openers: Set<String> = []
+        var previous: String??
+        for action in actions where previous != .some(action.section) {
+            openers.insert(action.id)
+            previous = .some(action.section)
+        }
+        return openers
+    }
 
     static func groups(of actions: [Action]) -> [String] {
         var seen: [String] = []
@@ -143,35 +174,43 @@ private struct ActionRow: View {
     var body: some View {
         let busy = model.run?.execution.isActive == true
         let enabled = action.canRun && !busy
+        let waitsForReason = action.justification != nil && reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         Group {
             if action.requiresHold, action.launch != .inBrowser {
-                HoldToRun(enabled: enabled, action: { controller.run(action) }) { progress in
-                    row(icon: AnyView(HoldRing(progress: progress, tint: Palette.amber)), subtitle: progress > 0 ? String(localized: "Keep holding") : String(localized: "Hold to run"), highlight: progress > 0, tap: nil)
-                }
-                .accessibilityLabel(Text("\(action.title), hold to run"))
+                row(trigger: AnyView(
+                    HoldToRun(enabled: enabled && !waitsForReason, action: { controller.run(action) }) { progress in
+                        head(icon: AnyView(HoldRing(progress: progress, tint: Palette.amber)),
+                             subtitle: waitsForReason ? String(localized: "Give a reason to run it")
+                                : progress > 0 ? String(localized: "Keep holding") : String(localized: "Hold to run"),
+                             highlight: progress > 0)
+                    }
+                    .accessibilityLabel(Text("\(action.title), hold to run"))
+                ))
             } else {
-                let runnable = enabled || action.launch == .inBrowser
-                row(icon: AnyView(Image(systemName: action.launch == .inBrowser ? "arrow.up.forward.square" : "play.circle")
-                    .font(.system(size: 14)).foregroundStyle(.secondary).frame(width: 16, height: 16)),
-                    subtitle: action.launch == .inBrowser ? String(localized: "Opens in the browser") : nil, highlight: false,
-                    tap: runnable ? { controller.run(action) } : nil)
+                let runnable = (enabled && !waitsForReason) || action.launch == .inBrowser
+                row(trigger: AnyView(
+                    Button { controller.run(action) } label: {
+                        head(icon: AnyView(Image(systemName: action.launch == .inBrowser ? "arrow.up.forward.square" : "play.circle")
+                            .font(.system(size: 14)).foregroundStyle(.secondary).frame(width: 16, height: 16)),
+                             subtitle: action.launch == .inBrowser ? String(localized: "Opens in the browser")
+                                : waitsForReason ? String(localized: "Give a reason to run it") : nil,
+                             highlight: false)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!runnable)
+                ))
             }
         }
         .opacity(enabled || action.launch == .inBrowser ? 1 : 0.5)
         .onHover { hovering = $0 }
     }
 
-    /// `tap` makes the icon and title a button. The lists stay outside it: a picker inside a button's label turns into
-    /// plain text and cannot be opened.
-    private func row(icon: AnyView, subtitle: String?, highlight: Bool, tap: (() -> Void)?) -> some View {
+    /// `trigger` is the icon and title, held or clicked. The lists and the reason stay outside it: a picker inside a
+    /// button's label turns into plain text, and a press in a text field must never count as a hold.
+    private func row(trigger: AnyView) -> some View {
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 4) {
-                if let tap {
-                    Button(action: tap) { head(icon: icon, subtitle: subtitle, highlight: highlight) }
-                        .buttonStyle(.plain)
-                } else {
-                    head(icon: icon, subtitle: subtitle, highlight: highlight)
-                }
+                trigger
                 // Several lists sit under the title, each named, since a bare "cold" says nothing.
                 if lists.count > 1 {
                     HStack(spacing: 12) {
@@ -184,13 +223,27 @@ private struct ActionRow: View {
                     }
                     .padding(.leading, 28)
                 }
+                // OliveTin asks for a reason and keeps it with the run.
+                if action.justification != nil, action.launch != .inBrowser {
+                    TextField("Reason", text: reasonBinding, prompt: Text("Why you run it"))
+                        .textFieldStyle(.roundedBorder)
+                        .controlSize(.small)
+                        .padding(.leading, 28)
+                }
             }
             if lists.count == 1 { picker(for: lists[0]) }
         }
         .padding(8)
         .frame(minHeight: 44)
-        .background(hovering || highlight ? AnyShapeStyle(.quaternary.opacity(0.6)) : AnyShapeStyle(.clear), in: .rect(cornerRadius: 8))
-        .contentShape(Rectangle())
+        .background(hovering ? AnyShapeStyle(.quaternary.opacity(0.6)) : AnyShapeStyle(.clear), in: .rect(cornerRadius: 8))
+    }
+
+    private var reason: String {
+        model.reasons[action.id] ?? action.justification ?? ""
+    }
+
+    private var reasonBinding: Binding<String> {
+        Binding(get: { reason }, set: { model.reasons[action.id] = $0 })
     }
 
     private func head(icon: AnyView, subtitle: String?, highlight: Bool) -> some View {

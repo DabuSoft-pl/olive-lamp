@@ -8,7 +8,8 @@ public protocol OliveTinGateway: Sendable {
     func actions(dashboards: [String]) async throws -> [Action]
     func machines(entityType: String) async throws -> [Machine]
     /// Starts an action and returns its execution tracking id.
-    func start(actionID: String, arguments: [String: String]) async throws -> String
+    /// `justification` is the user's reason, for an action that asks for one.
+    func start(actionID: String, arguments: [String: String], justification: String?) async throws -> String
     func execution(id: String) async throws -> Execution
     /// The newest runs first.
     func history() async throws -> [Execution]

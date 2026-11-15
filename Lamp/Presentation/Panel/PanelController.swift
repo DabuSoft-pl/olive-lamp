@@ -62,10 +62,11 @@ final class PanelController {
         case .direct, .pick:
             guard model.run?.execution.isActive != true else { return }
             let picked = model.picks[action.id] ?? [:]
+            let reason = model.reasons[action.id] ?? action.justification
             model.clearStartProblem()
             following?.cancel()
             following = Task {
-                await runAction(action, picked: picked, history: model.history, notify: preferences.notifyWhenDone)
+                await runAction(action, picked: picked, reason: reason, history: model.history, notify: preferences.notifyWhenDone)
                 following = nil
                 refresh()
             }

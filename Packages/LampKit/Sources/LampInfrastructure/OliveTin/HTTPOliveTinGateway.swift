@@ -13,9 +13,17 @@ struct HTTPOliveTinGateway: OliveTinGateway {
     func actions(dashboards: [String]) async throws -> [Action] {
         var seen = Set<String>()
         var all: [Action] = []
-        for title in dashboards.isEmpty ? [""] : dashboards {
+        let titles = dashboards.isEmpty ? [""] : dashboards
+        for title in titles {
             let reply = try await client.call("GetDashboard", DashboardRequest(title: title), as: DashboardReply.self)
-            for action in reply.actions where seen.insert(action.id).inserted {
+            for var action in reply.actions where seen.insert(action.id).inserted {
+                // One dashboard: its fieldsets are the groups. Several: each dashboard is a group, its fieldsets sections.
+                if titles.count > 1 {
+                    let dashboard = reply.dashboard?.title.flatMap { $0.isEmpty ? nil : $0 } ?? title
+                    // A fieldset named like its dashboard ("Actions" on "Actions") needs no heading of its own.
+                    action.section = action.group == dashboard ? nil : action.group
+                    action.group = dashboard
+                }
                 all.append(action)
             }
         }
@@ -49,10 +57,11 @@ struct HTTPOliveTinGateway: OliveTinGateway {
         }
     }
 
-    func start(actionID: String, arguments: [String: String]) async throws -> String {
+    func start(actionID: String, arguments: [String: String], justification: String?) async throws -> String {
         let request = StartRequest(
             bindingId: actionID,
-            arguments: arguments.sorted { $0.key < $1.key }.map { StartRequest.Argument(name: $0.key, value: $0.value) }
+            arguments: arguments.sorted { $0.key < $1.key }.map { StartRequest.Argument(name: $0.key, value: $0.value) },
+            justification: justification
         )
         let reply = try await client.call("StartAction", request, as: StartReply.self)
         guard let id = reply.executionTrackingId, !id.isEmpty else { throw GatewayError.refused("No execution id") }

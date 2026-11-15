@@ -4,6 +4,29 @@ import LampApplication
 import LampDomain
 @testable import LampInfrastructure
 
+@Suite struct StockOliveTinTests {
+    /// "Delete old backups" from OliveTin 3000.22's own sample config.
+    @Test func reasonUnnamedConfirmationAndHTMLFromTheSampleConfig() throws {
+        let json = """
+        {"dashboard":{"title":"Actions","contents":[{"type":"fieldset","title":"Actions","contents":[
+          {"type":"link","action":{"bindingId":"del","title":"Delete old backups","canExec":true,"justification":" ","arguments":[
+            {"name":"","title":"Description","type":"html","defaultValue":"See <a href=x>x</a>"},
+            {"name":"","title":"Are you sure?!","type":"confirmation"}]}},
+          {"type":"link","action":{"bindingId":"ping","title":"Ping","canExec":true,"justification":""}},
+          {"type":"link","action":{"bindingId":"dirs","title":"Backup","canExec":true,"arguments":[
+            {"name":"directories","type":"checklist","choices":[{"value":"Documents"},{"value":"Pictures"}]}]}}
+        ]}]}}
+        """
+        let actions = try JSONDecoder().decode(DashboardReply.self, from: Data(json.utf8)).actions
+        #expect(actions[0].justification == "")
+        #expect(actions[0].requiresHold)
+        #expect(actions[0].launch == .direct)
+        #expect(actions[0].startArguments() == ["": "1"])
+        #expect(actions[1].justification == nil)
+        #expect(actions[2].launch == .inBrowser)
+    }
+}
+
 @Suite struct WireTests {
     @Test func dashboardActionsKeepTheirTopLevelGroup() throws {
         let json = """
@@ -133,7 +156,7 @@ struct MockServerTests {
     }
 
     @Test func runsAndFollowsAnAction() async throws {
-        let id = try await gateway.start(actionID: "notify", arguments: [:])
+        let id = try await gateway.start(actionID: "notify", arguments: [:], justification: nil)
         var execution = try await gateway.execution(id: id)
         for _ in 0..<20 where !execution.isFinished {
             try await Task.sleep(for: .milliseconds(500))
@@ -145,7 +168,7 @@ struct MockServerTests {
 
     @Test func missingConfirmationIsRefused() async {
         await #expect(throws: GatewayError.refused("confirmation required")) {
-            _ = try await gateway.start(actionID: "prune", arguments: [:])
+            _ = try await gateway.start(actionID: "prune", arguments: [:], justification: nil)
         }
     }
 }

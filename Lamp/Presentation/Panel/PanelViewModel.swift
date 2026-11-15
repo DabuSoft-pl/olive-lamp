@@ -39,6 +39,8 @@ final class PanelViewModel: OverviewOutput, RunOutput {
     var showingLog = false
     /// The user's choices: action id → argument name → value.
     var picks: [String: [String: String]] = [:]
+    /// The reason typed for each action that asks for one.
+    var reasons: [String: String] = [:]
 
     var history: [Execution] { overview?.history ?? [] }
 

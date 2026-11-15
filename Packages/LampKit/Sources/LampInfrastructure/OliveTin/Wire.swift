@@ -55,7 +55,7 @@ struct DashboardReply: Decodable {
         var found: [Action] = []
         func walk(_ components: [Component], group: String?, depth: Int) {
             for component in components {
-                if let message = component.action, let action = message.action(group: group) {
+                if let message = component.action, let action = message.action(group: group, section: nil) {
                     found.append(action)
                 }
                 let title = component.title?.trimmingCharacters(in: .whitespaces)
@@ -74,6 +74,7 @@ struct ActionMessage: Decodable {
     var canExec: Bool?
     var hasRunningInstance: Bool?
     var arguments: [Argument]?
+    var justification: String?
 
     struct Argument: Decodable {
         var name: String?
@@ -88,27 +89,36 @@ struct ActionMessage: Decodable {
         var title: String?
     }
 
-    func action(group: String?) -> Action? {
+    func action(group: String?, section: String?) -> Action? {
         guard let id = bindingId, !id.isEmpty else { return nil }
+        // OliveTin's rule: any text asks for a reason, a single space being an empty template; no text, no reason.
+        let reason = justification.flatMap { $0.isEmpty ? nil : $0.trimmingCharacters(in: .whitespaces) }
         return Action(
             id: id,
             title: title ?? id,
             group: group,
+            section: section,
             canRun: canExec ?? false,
             isRunning: hasRunningInstance ?? false,
-            arguments: (arguments ?? []).compactMap(Self.argument)
+            arguments: (arguments ?? []).compactMap(Self.argument),
+            justification: reason
         )
     }
 
     static func argument(_ message: Argument) -> ActionArgument? {
+        // A confirmation or a block of text may come without a name; OliveTin accepts it that way.
+        if message.type == "confirmation" {
+            return ActionArgument(name: message.name ?? "", title: message.title ?? "", kind: .confirmation)
+        }
+        if message.type == "html" { return ActionArgument(name: message.name ?? "", title: message.title ?? "", kind: .display) }
         guard let name = message.name, !name.isEmpty else { return nil }
         let title = message.title.flatMap { $0.isEmpty ? nil : $0 } ?? name
-        if message.type == "confirmation" { return ActionArgument(name: name, title: title, kind: .confirmation) }
         let choices = (message.choices ?? []).compactMap { choice -> ActionArgument.Choice? in
             guard let value = choice.value else { return nil }
             return ActionArgument.Choice(value: value, title: choice.title.flatMap { $0.isEmpty ? nil : $0 } ?? value)
         }
-        if !choices.isEmpty {
+        // A checklist picks several values; a single menu would quietly send one, so the web page asks instead.
+        if !choices.isEmpty, message.type != "checklist" {
             return ActionArgument(name: name, title: title, kind: .choice(choices), defaultValue: message.defaultValue.flatMap { $0.isEmpty ? nil : $0 })
         }
         return ActionArgument(name: name, title: title, kind: .other(message.type ?? ""))
@@ -142,6 +152,7 @@ struct EntityMessage: Decodable {
 struct StartRequest: Encodable, Sendable {
     var bindingId: String
     var arguments: [Argument]
+    var justification: String?
 
     struct Argument: Encodable, Sendable {
         var name: String
