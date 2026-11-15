@@ -54,7 +54,13 @@ make build       # xcodegen + xcodebuild (Debug, ad-hoc signed) into build/
 make run         # build and open the app
 ```
 
+## App icon
+
+`Lamp/Assets.xcassets/AppIcon.appiconset` is generated: `swift tools/make-icon.swift Lamp/Assets.xcassets/AppIcon.appiconset
+/tmp/preview.png` redraws every size from the mockup in docs/design/States.dc.html (a metal desk lamp lighting a small
+server; 64 px and below drop the fine detail). macOS shows it in notifications, so there is no separate notification
+logo. The menu bar mark stays a template symbol on purpose.
+
 ## Next
 
-Web sign-in (a `WKWebView` sheet that keeps the domain's cookies), app icon (`tools/make-icon.swift`, as in Tendbar),
-launch at login, Sparkle, notarized release, Homebrew. Plan: `~/Projekty/vault/Projekty/Lamp na Maca/`.
+Web sign-in (a `WKWebView` sheet that keeps the domain's cookies), launch at login, Sparkle, notarized release, Homebrew. Plan: `~/Projekty/vault/Projekty/Lamp na Maca/`.
