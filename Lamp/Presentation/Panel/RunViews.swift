@@ -122,7 +122,7 @@ struct RunLogView: View {
             }
 
             LogText(output: execution.output)
-                .frame(height: 360)
+                .frame(height: 480)
                 .background(Palette.inset, in: .rect(cornerRadius: 10))
                 .padding(.horizontal, 8)
 

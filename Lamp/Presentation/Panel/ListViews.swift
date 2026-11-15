@@ -16,7 +16,7 @@ struct MachineList: View {
                 HStack(spacing: 8) {
                     Circle().fill(color(machine.health)).frame(width: 8, height: 8)
                     Text(machine.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
-                        .frame(width: 128, alignment: .leading)
+                        .frame(width: 148, alignment: .leading)
                     if let kind = machine.kind {
                         Text(kind).font(.system(size: 11, design: .monospaced)).foregroundStyle(.tertiary)
                     }

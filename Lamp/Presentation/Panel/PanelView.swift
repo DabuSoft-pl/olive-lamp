@@ -20,7 +20,7 @@ struct PanelView: View {
                 footer
             }
         }
-        .frame(width: 380)
+        .frame(width: 440)
         .onAppear { actions.panelOpened() }
     }
 
@@ -103,7 +103,7 @@ struct PanelView: View {
         if scrolls {
             ScrollView { lists(of: overview) }
                 .scrollBounceBehavior(.basedOnSize)
-                .frame(maxHeight: 520)
+                .frame(maxHeight: 680)
         } else {
             lists(of: overview)
         }
