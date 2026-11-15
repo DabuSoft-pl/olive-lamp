@@ -6,6 +6,9 @@ struct LampApp: App {
     @State private var container: AppContainer
 
     init() {
+        #if DEBUG
+        Screenshots.runIfRequested()
+        #endif
         let container = AppContainer.live()
         container.start()
         #if DEBUG

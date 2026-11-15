@@ -1,7 +1,7 @@
 DERIVED := build
 APP := "$(DERIVED)/Build/Products/Debug/Olive Lamp.app"
 
-.PHONY: generate build test test-live run release clean
+.PHONY: generate build test test-live run release screenshots clean
 
 generate:
 	xcodegen generate --quiet
@@ -26,3 +26,7 @@ clean:
 # it needs (TEAM_ID=ZFG7SZ938C NOTARY_PROFILE=tendbar make release).
 release:
 	scripts/release.sh
+
+# The README images, rendered from made-up data (Lamp/App/Screenshots.swift).
+screenshots: build
+	$(APP)/Contents/MacOS/"Olive Lamp" -AppleLanguages "(en)" -screenshots "$(CURDIR)/docs/images"
