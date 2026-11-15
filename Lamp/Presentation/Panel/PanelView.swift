@@ -9,6 +9,7 @@ struct PanelView: View {
     /// Off only for snapshots: ImageRenderer draws nothing inside a ScrollView.
     var scrolls = true
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.dismiss) private var dismiss
     /// The menu bar window keeps the last offset, or lands at the bottom; every opening starts at the top.
     @State private var scroll = ScrollPosition(edge: .top)
     /// The lists' own height: the menu bar window gives a ScrollView no height of its own, so it would shrink to nothing.
@@ -46,7 +47,7 @@ struct PanelView: View {
                     }
                 }
                 Divider()
-                Button("Add Server…") { SettingsWindow.open(with: openSettings) }
+                Button("Add Server…") { SettingsWindow.open(with: openSettings, closing: dismiss) }
             } label: {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
@@ -85,9 +86,9 @@ struct PanelView: View {
         case .loading:
             ProgressView().controlSize(.small).frame(maxWidth: .infinity).padding(24)
         case .noServer:
-            EmptyServers { SettingsWindow.open(with: openSettings) }
+            EmptyServers { SettingsWindow.open(with: openSettings, closing: dismiss) }
         case .problem(let problem, _):
-            ProblemBanner(problem: problem, retry: actions.refresh) { SettingsWindow.open(with: openSettings) }
+            ProblemBanner(problem: problem, retry: actions.refresh) { SettingsWindow.open(with: openSettings, closing: dismiss) }
             if let overview = model.overview { body(of: overview) }
         case .overview(let overview):
             body(of: overview)
@@ -139,7 +140,7 @@ struct PanelView: View {
                 .disabled(model.servers.isEmpty)
             Spacer()
             Menu {
-                Button("Settings…") { SettingsWindow.open(with: openSettings) }
+                Button("Settings…") { SettingsWindow.open(with: openSettings, closing: dismiss) }
                 Divider()
                 Button("Quit Lamp") { NSApp.terminate(nil) }
             } label: {
@@ -219,7 +220,10 @@ private struct ProblemBanner: View {
 
 enum SettingsWindow {
     @MainActor
-    static func open(with openSettings: OpenSettingsAction) {
+    static func open(with openSettings: OpenSettingsAction, closing dismiss: DismissAction) {
+        // The panel steps aside for the window it opened.
+        dismiss()
+        NSApp.windows.filter { $0.className.contains("MenuBarExtra") && $0.isVisible }.forEach { $0.close() }
         // The cooperative `activate()` leaves a menu bar app behind the frontmost app, so the window never shows.
         NSApp.activate(ignoringOtherApps: true)
         openSettings()
