@@ -182,11 +182,16 @@ private struct RunProgressBar: View {
     var body: some View {
         let execution = run.execution
         let value: Double? = switch execution.state {
-        case .succeeded, .failed, .timedOut, .blocked: 1
+        case .succeeded, .failed, .timedOut, .blocked, .stopped: 1
         case .queued: 0
         case .running: run.estimate?.progress(elapsed: elapsed)
         }
-        let tint: Color = execution.state == .succeeded ? Palette.ok : execution.isActive ? Palette.amber : Palette.bad
+        let tint: Color = switch execution.state {
+        case .succeeded: Palette.ok
+        case .queued, .running: Palette.amber
+        case .stopped: Palette.off
+        case .failed, .timedOut, .blocked: Palette.bad
+        }
         Group {
             if let value {
                 GeometryReader { proxy in
@@ -239,6 +244,7 @@ struct StateDot: View {
         case .running, .queued: Palette.amber
         case .succeeded: Palette.ok
         case .failed, .timedOut, .blocked: Palette.bad
+        case .stopped: Palette.off
         }
     }
 }
@@ -252,6 +258,7 @@ enum StateText {
         case .failed: String(localized: "Failed, exit code \(execution.exitCode)")
         case .timedOut: String(localized: "Timed out")
         case .blocked: String(localized: "Blocked")
+        case .stopped: String(localized: "Stopped")
         }
     }
 }

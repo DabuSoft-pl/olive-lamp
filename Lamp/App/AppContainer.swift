@@ -20,12 +20,13 @@ final class AppContainer {
         self.preferences = preferences
         let directory = ServerDirectory(repository: repository, credentials: credentials, gateways: gateways)
         let probe = ProbeServer(directory: directory)
+        let runAction = RunAction(directory: directory, clock: clock, output: panel, notifier: notifier)
         panelActions = PanelController(
             model: panel,
             directory: directory,
             refreshOverview: RefreshOverview(directory: directory, clock: clock, output: panel),
-            runAction: RunAction(directory: directory, clock: clock, output: panel, notifier: notifier),
-            stopRun: StopRun(directory: directory),
+            runAction: runAction,
+            stopRun: StopRun(directory: directory, runs: runAction),
             preferences: preferences
         )
         servers = ServersController(

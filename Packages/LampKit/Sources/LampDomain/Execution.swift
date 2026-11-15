@@ -16,11 +16,14 @@ public struct Execution: Identifiable, Equatable, Sendable {
     public var timedOut: Bool
     public var blocked: Bool
     public var canKill: Bool
+    /// The user asked Lamp to stop it. OliveTin reports a killed run as a failure (exit code -1); Lamp knows better.
+    public var stoppedByUser: Bool
 
     public init(
         id: String, actionID: String, actionTitle: String, user: String = "", startedAt: Date? = nil,
         finishedAt: Date? = nil, output: String = "", exitCode: Int = 0, isFinished: Bool = false,
-        isQueued: Bool = false, timedOut: Bool = false, blocked: Bool = false, canKill: Bool = false
+        isQueued: Bool = false, timedOut: Bool = false, blocked: Bool = false, canKill: Bool = false,
+        stoppedByUser: Bool = false
     ) {
         self.id = id
         self.actionID = actionID
@@ -35,10 +38,11 @@ public struct Execution: Identifiable, Equatable, Sendable {
         self.timedOut = timedOut
         self.blocked = blocked
         self.canKill = canKill
+        self.stoppedByUser = stoppedByUser
     }
 
     public enum State: Equatable, Sendable {
-        case queued, running, succeeded, failed, timedOut, blocked
+        case queued, running, succeeded, failed, timedOut, blocked, stopped
     }
 
     public var state: State {
@@ -46,6 +50,7 @@ public struct Execution: Identifiable, Equatable, Sendable {
         if isQueued, !isFinished { return .queued }
         if !isFinished { return .running }
         if timedOut { return .timedOut }
+        if stoppedByUser, exitCode != 0 { return .stopped }
         return exitCode == 0 ? .succeeded : .failed
     }
 
@@ -66,6 +71,7 @@ public struct Execution: Identifiable, Equatable, Sendable {
     /// A finished run is worth a notification when it went wrong, or took long enough for the user to look away.
     public func deservesNotice(longerThan seconds: TimeInterval = 20) -> Bool {
         guard isFinished else { return false }
+        if state == .stopped { return false }  // the user is there: they just stopped it
         if state != .succeeded { return true }
         return (duration ?? 0) >= seconds
     }

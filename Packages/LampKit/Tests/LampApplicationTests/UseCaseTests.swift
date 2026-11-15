@@ -105,6 +105,7 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
     @Test func runFollowsUntilFinishedAndNotifies() async {
         var done = running("ok: [nas]")
         done.isFinished = true
+        done.finishedAt = Date(timeIntervalSince1970: 10_030)  // 40 s: long enough to be worth a notification
         gateway.reads = [running("TASK [apt]"), done]
         let action = Action(id: "update", title: "Update", arguments: [ActionArgument(name: "confirm", title: "OK", kind: .confirmation)])
         let run = RunAction(directory: directory(), clock: InstantClock(), output: recorder, notifier: recorder)
@@ -114,6 +115,21 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         #expect(gateway.started.first?.1 == ["confirm": "1"])
         #expect(recorder.runs.map(\.execution.state) == [.running, .running, .succeeded])
         #expect(recorder.notified.map(\.id) == ["run-1"])
+    }
+
+    @Test func aRunTheUserStoppedEndsStoppedWithoutANotification() async throws {
+        let directory = directory()
+        let run = RunAction(directory: directory, clock: InstantClock(), output: recorder, notifier: recorder)
+        var killed = running()
+        killed.isFinished = true
+        killed.exitCode = -1
+        gateway.reads = [running(), killed]
+        try await StopRun(directory: directory, runs: run)(running())
+        await run(Action(id: "update", title: "Update"), history: [], notify: true)
+
+        #expect(gateway.stopped == ["run-1"])
+        #expect(recorder.runs.last?.execution.state == .stopped)
+        #expect(recorder.notified.isEmpty)
     }
 
     @Test func noNotificationWhenNotAsked() async {

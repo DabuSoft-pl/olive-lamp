@@ -12,6 +12,8 @@ public final class RunAction {
     public var pollInterval = 1.0
     /// Gives up following after this many failed reads in a row; the run itself goes on on the server.
     public var allowedMisses = 5
+    /// Runs the user asked to stop, so their end reads as stopped, not failed.
+    private var stopping: Set<String> = []
 
     public init(directory: ServerDirectory, clock: any Clock, output: any RunOutput, notifier: (any RunNotifying)?) {
         self.directory = directory
@@ -36,7 +38,7 @@ public final class RunAction {
         var last = Execution(id: id, actionID: action.id, actionTitle: action.title, startedAt: clock.now)
         output?.show(RunProgress(execution: last, estimate: estimate))
         await follow(id: id, last: &last, estimate: estimate, gateway: gateway)
-        if notify, last.isFinished { notifier?.notifyFinished(last, server: server.name) }
+        if notify, last.deservesNotice() { notifier?.notifyFinished(last, server: server.name) }
     }
 
     /// Follows a run started elsewhere (the web page, a schedule) until it ends.
@@ -57,6 +59,7 @@ public final class RunAction {
             do {
                 var read = try await gateway.execution(id: id)
                 if read.startedAt == nil { read.startedAt = last.startedAt }
+                read.stoppedByUser = stopping.contains(id)
                 last = read
                 misses = 0
                 output?.show(RunProgress(execution: last, estimate: estimate))
@@ -65,19 +68,26 @@ public final class RunAction {
             }
         }
     }
+
+    func markStopping(_ id: String) {
+        stopping.insert(id)
+    }
 }
 
-/// Stops a running execution.
+/// Stops a running execution. The run it follows then ends as stopped, without a failure dot or notification.
 @MainActor
 public final class StopRun {
     private let directory: ServerDirectory
+    private let runs: RunAction
 
-    public init(directory: ServerDirectory) {
+    public init(directory: ServerDirectory, runs: RunAction) {
         self.directory = directory
+        self.runs = runs
     }
 
     public func callAsFunction(_ execution: Execution) async throws(GatewayError) {
         guard let server = directory.selected else { return }
+        runs.markStopping(execution.id)
         do {
             try await directory.gateway(for: server).stop(executionID: execution.id)
         } catch {

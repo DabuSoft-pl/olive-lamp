@@ -771,6 +771,16 @@
         }
       }
     },
+    "Stopped" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatrzymana"
+          }
+        }
+      }
+    },
     "Tell me when an action I started fails or ends after a long run" : {
       "localizations" : {
         "pl" : {

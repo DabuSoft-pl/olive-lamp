@@ -92,7 +92,7 @@ final class PanelViewModel: OverviewOutput, RunOutput {
         let wasActive = self.run?.execution.isActive ?? false
         self.run = run
         startProblem = nil
-        if wasActive, !run.execution.isActive, run.execution.state != .succeeded { unseenFailure = true }
+        if wasActive, !run.execution.isActive, ![.succeeded, .stopped].contains(run.execution.state) { unseenFailure = true }
     }
 
     func showStartFailed(_ problem: GatewayError, action: Action) {
