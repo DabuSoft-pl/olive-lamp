@@ -14,6 +14,8 @@ public final class RunAction {
     public var allowedMisses = 5
     /// Runs the user asked to stop, so their end reads as stopped, not failed.
     private var stopping: Set<String> = []
+    /// The server each followed run lives on, so Stop reaches it even after the user selected another server.
+    private var homes: [String: Server] = [:]
 
     public init(directory: ServerDirectory, clock: any Clock, output: any RunOutput, notifier: (any RunNotifying)?) {
         self.directory = directory
@@ -34,6 +36,7 @@ public final class RunAction {
             output?.showStartFailed(GatewayError.from(error), action: action)
             return
         }
+        homes[id] = server
         let estimate = RunEstimate(history: history, actionID: action.id)
         var last = Execution(id: id, actionID: action.id, actionTitle: action.title, startedAt: clock.now)
         output?.show(RunProgress(execution: last, estimate: estimate))
@@ -44,6 +47,7 @@ public final class RunAction {
     /// Follows a run started elsewhere (the web page, a schedule) until it ends.
     public func follow(_ execution: Execution, history: [Execution]) async {
         guard let server = directory.selected else { return }
+        homes[execution.id] = server
         var last = execution
         await follow(id: execution.id, last: &last, estimate: RunEstimate(history: history, actionID: execution.actionID), gateway: directory.gateway(for: server))
     }
@@ -72,6 +76,11 @@ public final class RunAction {
     func markStopping(_ id: String) {
         stopping.insert(id)
     }
+
+    /// The server a run Lamp follows was started on or found on.
+    public func server(of id: String) -> Server? {
+        homes[id]
+    }
 }
 
 /// Stops a running execution. The run it follows then ends as stopped, without a failure dot or notification.
@@ -86,7 +95,7 @@ public final class StopRun {
     }
 
     public func callAsFunction(_ execution: Execution) async throws(GatewayError) {
-        guard let server = directory.selected else { return }
+        guard let server = runs.server(of: execution.id) ?? directory.selected else { return }
         runs.markStopping(execution.id)
         do {
             try await directory.gateway(for: server).stop(executionID: execution.id)

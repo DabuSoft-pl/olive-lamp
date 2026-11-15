@@ -164,6 +164,11 @@ struct AddServerView: View {
                     EmptyView()
                 }
                 Text(help).font(.system(size: 12)).foregroundStyle(.secondary)
+                if method.sendsSecret, address?.isCleartextToAnotherHost == true {
+                    Label("This address is plain HTTP, so anyone on the same network can read what Olive Lamp sends. Prefer https", systemImage: "exclamationmark.triangle")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Palette.amberInk)
+                }
             }
             .formStyle(.grouped)
 

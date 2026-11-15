@@ -861,6 +861,16 @@
         }
       }
     },
+    "This address is plain HTTP, so anyone on the same network can read what Olive Lamp sends. Prefer https" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten adres to zwykły HTTP, więc każdy w tej samej sieci może odczytać to, co wysyła Olive Lamp. Lepiej użyj https"
+          }
+        }
+      }
+    },
     "This server shows you no actions" : {
       "localizations" : {
         "pl" : {

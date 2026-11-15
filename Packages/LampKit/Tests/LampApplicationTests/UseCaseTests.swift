@@ -44,9 +44,15 @@ final class FakeGateway: OliveTinGateway, @unchecked Sendable {
     func stop(executionID: String) async throws { stopped.append(executionID) }
 }
 
-struct FakeGateways: GatewayMaking {
+final class FakeGateways: GatewayMaking, @unchecked Sendable {
     let gateway: FakeGateway
-    func gateway(address: URL, credential: Credential?) -> any OliveTinGateway { gateway }
+    /// Every address a gateway was made for, in order.
+    var addresses: [URL] = []
+    init(gateway: FakeGateway) { self.gateway = gateway }
+    func gateway(address: URL, credential: Credential?) -> any OliveTinGateway {
+        addresses.append(address)
+        return gateway
+    }
 }
 
 final class MemoryServers: ServerRepository, @unchecked Sendable {
@@ -130,6 +136,27 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         #expect(gateway.stopped == ["run-1"])
         #expect(recorder.runs.last?.execution.state == .stopped)
         #expect(recorder.notified.isEmpty)
+    }
+
+    @Test func stopReachesTheRunsOwnServerAfterASwitch() async throws {
+        let gateways = FakeGateways(gateway: gateway)
+        let home = Server(name: "Homelab", address: URL(string: "https://panel.example.ts.net")!, signIn: .automatic)
+        let other = Server(name: "Office", address: URL(string: "https://office.example.com")!, signIn: .automatic)
+        servers.servers = [home, other]
+        let directory = ServerDirectory(repository: servers, credentials: credentials, gateways: gateways)
+        directory.select(home.id)
+        let run = RunAction(directory: directory, clock: InstantClock(), output: recorder, notifier: nil)
+        var done = running()
+        done.isFinished = true
+        gateway.reads = [done]
+        await run.follow(running(), history: [])
+        directory.select(other.id)
+        gateways.addresses = []
+
+        try await StopRun(directory: directory, runs: run)(running())
+
+        #expect(gateways.addresses == [home.address])
+        #expect(gateway.stopped == ["run-1"])
     }
 
     @Test func noNotificationWhenNotAsked() async {
@@ -221,9 +248,10 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
 }
 
 @Suite struct SessionCookiesTests {
-    func cookie(_ name: String, domain: String, expires: Date? = nil) -> HTTPCookie {
+    func cookie(_ name: String, domain: String, expires: Date? = nil, secure: Bool = false) -> HTTPCookie {
         var properties: [HTTPCookiePropertyKey: Any] = [.name: name, .value: "v-\(name)", .domain: domain, .path: "/"]
         if let expires { properties[.expires] = expires }
+        if secure { properties[.secure] = "TRUE" }
         return HTTPCookie(properties: properties)!
     }
 
@@ -236,6 +264,12 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         ]
         let credential = SessionCookies.credential(from: cookies, for: URL(string: "https://panel.example.com/")!)
         #expect(credential == .cookies(["olivetin-sid-local": "v-olivetin-sid-local", "authelia_session": "v-authelia_session"]))
+    }
+
+    @Test func aSecureCookieNeverGoesOverPlainHTTP() {
+        let cookies = [cookie("sid", domain: "olivetin.local", secure: true), cookie("plain", domain: "olivetin.local")]
+        #expect(SessionCookies.credential(from: cookies, for: URL(string: "http://olivetin.local:1337")!) == .cookies(["plain": "v-plain"]))
+        #expect(SessionCookies.credential(from: cookies, for: URL(string: "https://olivetin.local")!) == .cookies(["sid": "v-sid", "plain": "v-plain"]))
     }
 
     @Test func noCookiesNoCredential() {

@@ -25,6 +25,18 @@ public enum SignInMethod: String, Codable, Sendable, CaseIterable {
     case headers
     /// Cookies kept from signing in on the server's own web page.
     case webSession
+
+    /// Whether this method sends a secret with every request.
+    public var sendsSecret: Bool { self != .automatic }
+}
+
+public extension URL {
+    /// Plain HTTP to anything but this Mac: whoever shares the network can read what is sent.
+    var isCleartextToAnotherHost: Bool {
+        guard scheme?.lowercased() == "http" else { return false }
+        let host = (host() ?? "").lowercased()
+        return !["localhost", "127.0.0.1", "::1", "[::1]"].contains(host)
+    }
 }
 
 /// What the app keeps in the Keychain for a server.

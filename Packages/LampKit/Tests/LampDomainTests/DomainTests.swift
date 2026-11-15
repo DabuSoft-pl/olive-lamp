@@ -2,6 +2,17 @@ import Foundation
 import Testing
 @testable import LampDomain
 
+@Suite struct CleartextTests {
+    @Test func plainHTTPToAnotherHostIsCleartext() {
+        #expect(URL(string: "http://192.168.1.10:1337")!.isCleartextToAnotherHost)
+        #expect(URL(string: "http://olivetin.local")!.isCleartextToAnotherHost)
+        #expect(!URL(string: "https://panel.example.ts.net")!.isCleartextToAnotherHost)
+        #expect(!URL(string: "http://localhost:1337")!.isCleartextToAnotherHost)
+        #expect(!URL(string: "http://127.0.0.1:1337")!.isCleartextToAnotherHost)
+        #expect(SignInMethod.apiKey.sendsSecret && !SignInMethod.automatic.sendsSecret)
+    }
+}
+
 @Suite struct ActionTests {
     let machine = ActionArgument(name: "limit", title: "Machine", kind: .choice([.init(value: "nas", title: "nas"), .init(value: "all", title: "All")]))
     let confirm = ActionArgument(name: "confirm", title: "I understand", kind: .confirmation)
