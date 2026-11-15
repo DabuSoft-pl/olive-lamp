@@ -2,24 +2,57 @@ import LampApplication
 import LampDomain
 import SwiftUI
 
+/// The entities of one OliveTin type, each with a state dot. The heading picks the type, or hides the list.
 struct MachineList: View {
     let machines: [Machine]
-    let runningAction: Execution?
+    let types: [String]
+    /// nil: the list is hidden.
+    let type: String?
+    let choose: @MainActor @Sendable (String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Machines")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
+            heading
                 .padding(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-            // Two columns keep a homelab's worth of machines on one screen; a long name ends in "…" and shows in full on hover.
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible())], alignment: .leading, spacing: 0) {
-                ForEach(machines) { machine in
-                    cell(machine)
+            if type != nil {
+                // Two columns keep a homelab's worth of machines on one screen; a long name ends in "…" and shows in full on hover.
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible())], alignment: .leading, spacing: 0) {
+                    ForEach(machines) { machine in
+                        cell(machine)
+                    }
                 }
+                .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
         }
+    }
+
+    private var heading: some View {
+        Menu {
+            ForEach(types, id: \.self) { item in
+                Toggle(Self.title(of: item), isOn: Binding(get: { item == type }, set: { _ in choose(item) }))
+            }
+            Divider()
+            Toggle("Hide", isOn: Binding(get: { type == nil }, set: { _ in choose("") }))
+        } label: {
+            HStack(spacing: 4) {
+                Text(type.map(Self.title(of:)) ?? String(localized: "Entities"))
+                Image(systemName: type == nil ? "chevron.right" : "chevron.down")
+                    .font(.system(size: 8, weight: .semibold))
+            }
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(.secondary)
+            .contentShape(.rect)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Choose which OliveTin entities to show")
+    }
+
+    /// `machine` is the web Lamp's own type; any other type keeps the name its config gives it.
+    static func title(of type: String) -> String {
+        type == "machine" ? String(localized: "Machines") : type.prefix(1).uppercased() + type.dropFirst()
     }
 
     private func cell(_ machine: Machine) -> some View {
@@ -29,6 +62,8 @@ struct MachineList: View {
                 .font(.system(size: 13, weight: .medium))
                 .lineLimit(1)
                 .truncationMode(.tail)
+                // The name says which one; a long note (Docker's "Exited (128) 13 days ago") gives way first.
+                .layoutPriority(1)
             Spacer(minLength: 4)
             // A machine that needs you shows why; one that is fine shows what it is.
             if let note = machine.note {

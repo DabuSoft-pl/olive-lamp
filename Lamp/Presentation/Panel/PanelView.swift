@@ -125,8 +125,11 @@ struct PanelView: View {
 
     private func lists(of overview: Overview) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            if !overview.machines.isEmpty {
-                MachineList(machines: overview.machines, runningAction: model.run?.execution)
+            if !overview.entityTypes.isEmpty {
+                MachineList(
+                    machines: overview.machines, types: overview.entityTypes, type: overview.entityType,
+                    choose: actions.showEntities
+                )
                 Divider().padding(.horizontal, 16).padding(.vertical, 8)
             }
             ActionList(actions: overview.actions, model: model, controller: actions)

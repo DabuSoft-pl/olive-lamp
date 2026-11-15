@@ -30,6 +30,10 @@ struct HTTPOliveTinGateway: OliveTinGateway {
         return all
     }
 
+    func entityTypes() async throws -> [String] {
+        try await client.call("GetEntities", EntitiesRequest(entityType: nil), as: EntitiesReply.self).types
+    }
+
     func machines(entityType: String) async throws -> [Machine] {
         let reply = try await client.call("GetEntities", EntitiesRequest(entityType: entityType), as: EntitiesReply.self)
         let instances = (reply.entityDefinitions ?? [])

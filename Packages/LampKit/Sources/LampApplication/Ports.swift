@@ -6,6 +6,9 @@ public protocol OliveTinGateway: Sendable {
     func info() async throws -> ServerInfo
     /// Every action on the given dashboards, in dashboard order.
     func actions(dashboards: [String]) async throws -> [Action]
+    /// The entity types that have at least one entity, in the server's order.
+    func entityTypes() async throws -> [String]
+    /// The entities of one type, each read as a machine.
     func machines(entityType: String) async throws -> [Machine]
     /// Starts an action and returns its execution tracking id.
     /// `justification` is the user's reason, for an action that asks for one.
@@ -54,15 +57,23 @@ public struct Overview: Equatable, Sendable {
     public var info: ServerInfo
     public var actions: [Action]
     public var machines: [Machine]
+    /// The entity types the server offers, and the one `machines` are of (nil: none listed).
+    public var entityTypes: [String]
+    public var entityType: String?
     /// The newest runs first.
     public var history: [Execution]
     public var checkedAt: Date
 
-    public init(server: Server, info: ServerInfo, actions: [Action], machines: [Machine], history: [Execution], checkedAt: Date) {
+    public init(
+        server: Server, info: ServerInfo, actions: [Action], machines: [Machine], entityTypes: [String] = [],
+        entityType: String? = nil, history: [Execution], checkedAt: Date
+    ) {
         self.server = server
         self.info = info
         self.actions = actions
         self.machines = machines
+        self.entityTypes = entityTypes
+        self.entityType = entityType
         self.history = history
         self.checkedAt = checkedAt
     }

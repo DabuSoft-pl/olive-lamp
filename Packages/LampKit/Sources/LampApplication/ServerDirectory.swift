@@ -53,6 +53,13 @@ public final class ServerDirectory {
         }
     }
 
+    /// Saves a changed server (its name, address or entity type); the credential stays as it is.
+    public func update(_ server: Server) throws {
+        guard let index = servers.firstIndex(where: { $0.id == server.id }) else { return }
+        servers[index] = server
+        try repository.save(servers)
+    }
+
     public func remove(_ id: UUID) throws {
         try credentials.remove(for: id)
         servers.removeAll { $0.id == id }

@@ -10,19 +10,21 @@ final class PanelController {
     private let refreshOverview: RefreshOverview
     private let runAction: RunAction
     private let stopRun: StopRun
+    private let chooseEntities: ChooseEntities
     private let preferences: Preferences
     private var refreshing: Task<Void, Never>?
     private var following: Task<Void, Never>?
 
     init(
         model: PanelViewModel, directory: ServerDirectory, refreshOverview: RefreshOverview, runAction: RunAction,
-        stopRun: StopRun, preferences: Preferences
+        stopRun: StopRun, chooseEntities: ChooseEntities, preferences: Preferences
     ) {
         self.model = model
         self.directory = directory
         self.refreshOverview = refreshOverview
         self.runAction = runAction
         self.stopRun = stopRun
+        self.chooseEntities = chooseEntities
         self.preferences = preferences
         syncServers()
     }
@@ -71,6 +73,14 @@ final class PanelController {
                 refresh()
             }
         }
+    }
+
+    /// `type` is an entity type to list, or "" to list none.
+    func showEntities(_ type: String) {
+        try? chooseEntities(type)
+        refreshing?.cancel()
+        refreshing = nil
+        refresh()
     }
 
     func stop() {

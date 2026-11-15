@@ -5,6 +5,16 @@ import LampDomain
 @testable import LampInfrastructure
 
 @Suite struct StockOliveTinTests {
+    /// GetEntities {} on OliveTin 3000.22 with its Docker sample: list entries come without fields.
+    @Test func entityTypesWithEntitiesOnly() throws {
+        let json = """
+        {"entityDefinitions":[{"title":"container","instances":[{"title":"6c1f","uniqueKey":"6c1f"}]},
+          {"title":"server","instances":[]},{"title":"container","instances":[{"uniqueKey":"x"}]}]}
+        """
+        #expect(try JSONDecoder().decode(EntitiesReply.self, from: Data(json.utf8)).types == ["container"])
+        #expect(String(decoding: try JSONEncoder().encode(EntitiesRequest(entityType: nil)), as: UTF8.self) == "{}")
+    }
+
     /// "Delete old backups" from OliveTin 3000.22's own sample config.
     @Test func reasonUnnamedConfirmationAndHTMLFromTheSampleConfig() throws {
         let json = """
@@ -121,6 +131,13 @@ import LampDomain
 }
 
 @Suite struct StorageTests {
+    /// servers.json from before the entity type was saved still reads, and leaves the choice to the app.
+    @Test func olderServerFileReads() throws {
+        let json = #"{"id":"8D0B8F4E-6F6B-4C38-9A63-2B1E0B6C0C11","name":"Homelab","address":"https://panel.example.ts.net","signIn":"automatic"}"#
+        let server = try JSONDecoder().decode(Server.self, from: Data(json.utf8))
+        #expect(server.entityType == nil)
+    }
+
     @Test func serversRoundTripWithPrivatePermissions() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: "lamp-test-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: directory) }

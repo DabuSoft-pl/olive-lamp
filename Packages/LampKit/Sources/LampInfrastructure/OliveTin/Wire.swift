@@ -126,11 +126,22 @@ struct ActionMessage: Decodable {
 }
 
 struct EntitiesRequest: Encodable, Sendable {
-    var entityType: String
+    /// nil asks for every type.
+    var entityType: String?
 }
 
 struct EntitiesReply: Decodable {
     var entityDefinitions: [Definition]?
+
+    /// The types that have entities, once each, in the server's order.
+    var types: [String] {
+        var seen = Set<String>()
+        return (entityDefinitions ?? []).compactMap { definition in
+            guard let title = definition.title, !title.isEmpty, !(definition.instances ?? []).isEmpty,
+                  seen.insert(title).inserted else { return nil }
+            return title
+        }
+    }
 
     struct Definition: Decodable {
         var title: String?

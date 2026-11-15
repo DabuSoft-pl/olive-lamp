@@ -8,6 +8,9 @@ final class FakeGateway: OliveTinGateway, @unchecked Sendable {
     var infoError: GatewayError?
     var actionList: [Action] = [Action(id: "check", title: "Check")]
     var machineError: GatewayError?
+    var types = ["container", "machine"]
+    /// The entity type of every `machines(entityType:)` call.
+    var listed: [String] = []
     var startError: GatewayError?
     /// Successive answers to `execution(id:)`; the last one repeats.
     var reads: [Execution] = []
@@ -23,7 +26,10 @@ final class FakeGateway: OliveTinGateway, @unchecked Sendable {
 
     func actions(dashboards: [String]) async throws -> [Action] { actionList }
 
+    func entityTypes() async throws -> [String] { types }
+
     func machines(entityType: String) async throws -> [Machine] {
+        listed.append(entityType)
         if let machineError { throw machineError }
         return [Machine(id: "0", name: "pve", health: .ok)]
     }
@@ -191,6 +197,30 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         await RefreshOverview(directory: directory(), clock: InstantClock(), output: recorder)()
         #expect(recorder.overviews.first?.actions.map(\.id) == ["check"])
         #expect(recorder.overviews.first?.machines.isEmpty == true)
+    }
+
+    @Test func machinesComeFirstThenAnyType() async {
+        await RefreshOverview(directory: directory(), clock: InstantClock(), output: recorder)()
+        #expect(gateway.listed == ["machine"])
+        #expect(recorder.overviews.first?.entityTypes == ["container", "machine"])
+        gateway.types = ["container"]
+        await RefreshOverview(directory: directory(), clock: InstantClock(), output: recorder)()
+        #expect(gateway.listed == ["machine", "container"])
+        #expect(recorder.overviews.last?.entityType == "container")
+    }
+
+    @Test func chosenAndHiddenEntitiesAreKept() async throws {
+        let directory = directory()
+        let refresh = RefreshOverview(directory: directory, clock: InstantClock(), output: recorder)
+        try ChooseEntities(directory: directory)("container")
+        #expect(servers.servers.first?.entityType == "container")
+        await refresh()
+        #expect(gateway.listed == ["container"])
+        try ChooseEntities(directory: directory)("")
+        await refresh()
+        #expect(gateway.listed == ["container"])
+        #expect(recorder.overviews.last?.machines.isEmpty == true)
+        #expect(recorder.overviews.last?.entityType == nil)
     }
 
     @Test func guestOnALockedServerMustSignIn() async {

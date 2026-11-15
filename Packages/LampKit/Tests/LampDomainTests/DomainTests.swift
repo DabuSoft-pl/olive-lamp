@@ -138,6 +138,28 @@ import Testing
         #expect(Machine(key: "k", title: "t", fields: ["state": "stopped"]).health == .off)
     }
 
+    /// A container entity from OliveTin 3000.22's own Docker sample.
+    @Test func dockerContainer() {
+        let fields = ["Names": "media-indexer", "State": "exited", "Status": "Exited (128) 13 days ago", "Image": "fedora", "ID": "6c1f"]
+        let machine = Machine(key: "6c1f", title: "6c1f", fields: fields)
+        #expect(machine == Machine(id: "6c1f", name: "media-indexer", kind: "fedora", health: .off, note: "Exited (128) 13 days ago"))
+        let running = Machine(key: "a", title: "a", fields: ["Names": "web", "State": "running", "Status": "Up 2 hours"])
+        #expect(running.health == .ok)
+        #expect(running.note == nil)
+    }
+
+    @Test func entityTypeChoice() {
+        var server = Server(name: "s", address: URL(string: "https://s")!, signIn: .automatic)
+        #expect(server.entityType(among: ["container", "machine"]) == "machine")
+        #expect(server.entityType(among: ["container"]) == "container")
+        #expect(server.entityType(among: []) == nil)
+        server.entityType = "container"
+        #expect(server.entityType(among: ["machine", "container"]) == "container")
+        #expect(server.entityType(among: ["machine"]) == nil)
+        server.entityType = ""
+        #expect(server.entityType(among: ["machine"]) == nil)
+    }
+
     @Test func signedInMeansAKnownUser() {
         func info(_ user: String) -> ServerInfo {
             ServerInfo(title: "", version: "", user: user, loginRequired: true, offersLocalLogin: false, oAuthProviders: [], rootDashboards: [])

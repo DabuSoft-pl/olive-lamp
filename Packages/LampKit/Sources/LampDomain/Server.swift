@@ -6,12 +6,22 @@ public struct Server: Identifiable, Equatable, Codable, Sendable {
     public var name: String
     public var address: URL
     public var signIn: SignInMethod
+    /// Which OliveTin entities the panel lists: nil picks one by itself, "" lists none.
+    public var entityType: String?
 
-    public init(id: UUID = UUID(), name: String, address: URL, signIn: SignInMethod) {
+    public init(id: UUID = UUID(), name: String, address: URL, signIn: SignInMethod, entityType: String? = nil) {
         self.id = id
         self.name = name
         self.address = address
         self.signIn = signIn
+        self.entityType = entityType
+    }
+
+    /// The entity type to list out of what the server offers: the user's choice, else `machine` (the web Lamp's status
+    /// playbook), else the first type. nil lists none.
+    public func entityType(among offered: [String]) -> String? {
+        if let entityType { return entityType.isEmpty || !offered.contains(entityType) ? nil : entityType }
+        return offered.contains("machine") ? "machine" : offered.first
     }
 }
 

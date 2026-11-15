@@ -7,8 +7,6 @@ public final class RefreshOverview {
     private let directory: ServerDirectory
     private let clock: any Clock
     private weak var output: (any OverviewOutput)?
-    /// The entity type the web Lamp's status playbook fills.
-    public var machineEntityType = "machine"
 
     public init(directory: ServerDirectory, clock: any Clock, output: any OverviewOutput) {
         self.directory = directory
@@ -26,14 +24,17 @@ public final class RefreshOverview {
             let info = try await gateway.info()
             if info.loginRequired, !info.isSignedIn { throw GatewayError.signInNeeded }
             async let actions = gateway.actions(dashboards: info.rootDashboards)
-            async let machines = gateway.machines(entityType: machineEntityType)
+            async let entities = Self.entities(of: server, from: gateway)
             async let history = gateway.history()
-            // A server without machines, or with an older API, still shows its actions.
+            // A server without entities, or with an older API, still shows its actions.
+            let (types, type, machines) = await entities
             let overview = Overview(
                 server: server,
                 info: info,
                 actions: try await actions,
-                machines: (try? await machines) ?? [],
+                machines: machines,
+                entityTypes: types,
+                entityType: type,
                 history: (try? await history) ?? [],
                 checkedAt: clock.now
             )
@@ -41,5 +42,13 @@ public final class RefreshOverview {
         } catch {
             output?.showProblem(GatewayError.from(error), server: server)
         }
+    }
+
+    private nonisolated static func entities(
+        of server: Server, from gateway: any OliveTinGateway
+    ) async -> (types: [String], type: String?, machines: [Machine]) {
+        let types = (try? await gateway.entityTypes()) ?? []
+        guard let type = server.entityType(among: types) else { return (types, nil, []) }
+        return (types, type, (try? await gateway.machines(entityType: type)) ?? [])
     }
 }

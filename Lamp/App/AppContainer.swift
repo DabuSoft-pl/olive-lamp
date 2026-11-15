@@ -27,6 +27,7 @@ final class AppContainer {
             refreshOverview: RefreshOverview(directory: directory, clock: clock, output: panel),
             runAction: runAction,
             stopRun: StopRun(directory: directory, runs: runAction),
+            chooseEntities: ChooseEntities(directory: directory),
             preferences: preferences
         )
         servers = ServersController(

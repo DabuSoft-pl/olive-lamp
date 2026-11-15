@@ -271,6 +271,16 @@
         }
       }
     },
+    "Choose which OliveTin entities to show" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz, które encje OliveTin pokazać"
+          }
+        }
+      }
+    },
     "Close" : {
       "localizations" : {
         "pl" : {
@@ -307,6 +317,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zamknij"
+          }
+        }
+      }
+    },
+    "Entities" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encje"
           }
         }
       }
@@ -397,6 +417,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nagłówki"
+          }
+        }
+      }
+    },
+    "Hide" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ukryj"
           }
         }
       }

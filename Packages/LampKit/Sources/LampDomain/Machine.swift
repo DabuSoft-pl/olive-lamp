@@ -22,28 +22,35 @@ public struct Machine: Identifiable, Equatable, Sendable {
         case ok, attention, failing, off, unknown
     }
 
+    /// Reads any OliveTin entity. Field names are matched without regard to case, so the web Lamp's status playbook
+    /// (`state`, `meta`, `summary`, `label`, `kind`) and, say, Docker's (`Names`, `State`, `Status`, `Image`) both read.
     public init(key: String, title: String, fields: [String: String]) {
-        let health = Self.health(from: fields["state"])
-        // A machine that is fine needs no sentence; one that is not gets the playbook's `summary` before its badge.
-        let candidates = health == .ok ? [fields["meta"]] : [fields["meta"], fields["summary"], fields["label"]]
-        let note = candidates
-            .compactMap { $0?.trimmingCharacters(in: .whitespaces) }
-            .first { !$0.isEmpty && $0.lowercased() != "ok" }
+        var lower: [String: String] = [:]
+        for (name, value) in fields {
+            let text = value.trimmingCharacters(in: .whitespaces)
+            if !text.isEmpty { lower[name.lowercased()] = text }
+        }
+        func first(_ names: String...) -> String? { names.lazy.compactMap { lower[$0] }.first }
+        let state = first("state", "status")
+        let health = Self.health(from: state)
+        // A machine that is fine needs no sentence; one that is not says why, the playbook's words before the badge.
+        let status = lower["status"].flatMap { $0.lowercased() == state?.lowercased() ? nil : $0 }
+        let candidates = health == .ok ? [lower["meta"]] : [lower["meta"], lower["summary"], status, lower["label"]]
         self.init(
             id: key,
-            name: fields["name"].flatMap { $0.isEmpty ? nil : $0 } ?? title,
-            kind: fields["kind"].flatMap { $0.isEmpty ? nil : $0 },
+            name: first("name", "names", "hostname") ?? title,
+            kind: first("kind", "type", "image"),
             health: health,
-            note: note
+            note: candidates.compactMap { $0 }.first { $0.lowercased() != "ok" }
         )
     }
 
     static func health(from state: String?) -> Health {
         switch state?.lowercased() {
-        case "ok", "up", "online", "running": .ok
-        case "warn", "warning", "attention": .attention
-        case "bad", "fail", "failed", "error", "down", "unreachable": .failing
-        case "off", "stopped", "offline": .off
+        case "ok", "up", "online", "running", "healthy", "active": .ok
+        case "warn", "warning", "attention", "paused", "restarting", "degraded", "unhealthy": .attention
+        case "bad", "fail", "failed", "error", "down", "unreachable", "dead": .failing
+        case "off", "stopped", "offline", "exited", "created", "inactive": .off
         default: .unknown
         }
     }
