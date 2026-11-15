@@ -261,6 +261,36 @@
         }
       }
     },
+    "Check Now" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź teraz"
+          }
+        }
+      }
+    },
+    "Check for Updates…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdź aktualizacje…"
+          }
+        }
+      }
+    },
+    "Check for updates automatically" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprawdzaj aktualizacje automatycznie"
+          }
+        }
+      }
+    },
     "Checking…" : {
       "localizations" : {
         "pl" : {
@@ -591,6 +621,16 @@
         }
       }
     },
+    "Once a day Olive Lamp reads the list of releases on GitHub. Nothing about you or your servers is sent" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raz dziennie Olive Lamp czyta listę wydań na GitHubie. Nic o Tobie ani Twoich serwerach nie jest wysyłane"
+          }
+        }
+      }
+    },
     "Open Sign-In…" : {
       "localizations" : {
         "pl" : {
@@ -677,6 +717,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Powód"
+          }
+        }
+      }
+    },
+    "Receive beta versions" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pobieraj wersje beta"
           }
         }
       }
@@ -967,6 +1017,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nieznany"
+          }
+        }
+      }
+    },
+    "Update to %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaktualizuj do %@"
+          }
+        }
+      }
+    },
+    "Updates" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizacje"
           }
         }
       }

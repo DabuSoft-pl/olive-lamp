@@ -13,11 +13,15 @@ final class AppContainer {
     let panelActions: PanelController
     let servers: ServersController
     private let notifier = UserNotificationsAdapter()
-    private(set) lazy var statusMenu = StatusItemMenu(panel: panel, actions: panelActions)
+    let updates: SoftwareUpdate
+    private(set) lazy var statusMenu = StatusItemMenu(panel: panel, actions: panelActions, updates: updates)
     private var timer: Timer?
 
-    init(repository: any ServerRepository, credentials: any CredentialStore, gateways: any GatewayMaking, clock: any Clock, preferences: Preferences) {
+    init(repository: any ServerRepository, credentials: any CredentialStore, gateways: any GatewayMaking, clock: any Clock, preferences: Preferences,
+        updates: SoftwareUpdate = SoftwareUpdate(starting: false)
+    ) {
         self.preferences = preferences
+        self.updates = updates
         let directory = ServerDirectory(repository: repository, credentials: credentials, gateways: gateways)
         let probe = ProbeServer(directory: directory)
         let runAction = RunAction(directory: directory, clock: clock, output: panel, notifier: notifier)
@@ -42,8 +46,14 @@ final class AppContainer {
             credentials: KeychainCredentialStore(),
             gateways: HTTPGatewayFactory(),
             clock: SystemClock(),
-            preferences: Preferences()
+            preferences: Preferences(),
+            updates: SoftwareUpdate(starting: !Self.isSnapshot)
         )
+    }
+
+    /// A snapshot run renders and quits; it must not ask about or look for updates.
+    private static var isSnapshot: Bool {
+        CommandLine.arguments.contains("-snapshot")
     }
 
     /// Reads the server now and every minute, so the menu bar mark stays current while the panel is closed.

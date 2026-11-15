@@ -10,11 +10,13 @@ final class StatusItemMenu: NSObject {
     var openSettings: (() -> Void)?
     private let panel: PanelViewModel
     private let actions: PanelController
+    private let updates: SoftwareUpdate
     private var monitor: Any?
 
-    init(panel: PanelViewModel, actions: PanelController) {
+    init(panel: PanelViewModel, actions: PanelController, updates: SoftwareUpdate) {
         self.panel = panel
         self.actions = actions
+        self.updates = updates
     }
 
     func start() {
@@ -52,8 +54,11 @@ final class StatusItemMenu: NSObject {
         if hasServer { menu.addItem(.separator()) }
         if openSettings != nil {
             menu.addItem(item(String(localized: "Settings…"), action: #selector(settings), key: ","))
-            menu.addItem(.separator())
         }
+        if updates.isAvailable {
+            menu.addItem(item(String(localized: "Check for Updates…"), action: #selector(checkForUpdates)))
+        }
+        menu.addItem(.separator())
         menu.addItem(item(String(localized: "Quit Olive Lamp"), action: #selector(quit), key: "q"))
         let y = button.isFlipped ? button.bounds.maxY + 4 : -4
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: y), in: button)
@@ -75,6 +80,8 @@ final class StatusItemMenu: NSObject {
     }
 
     @objc private func settings() { openSettings?() }
+
+    @objc private func checkForUpdates() { updates.checkNow() }
 
     @objc private func quit() { NSApplication.shared.terminate(nil) }
 }

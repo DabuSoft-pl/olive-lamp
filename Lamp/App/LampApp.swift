@@ -16,14 +16,14 @@ struct LampApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            PanelView(model: container.panel, actions: container.panelActions, preferences: container.preferences)
+            PanelView(model: container.panel, actions: container.panelActions, preferences: container.preferences, updates: container.updates)
         } label: {
             MenuBarLabel(panel: container.panel, statusMenu: container.statusMenu)
         }
         .menuBarExtraStyle(.window)
 
         Settings {
-            SettingsView(servers: container.servers, preferences: container.preferences, launchAtLogin: container.launchAtLogin)
+            SettingsView(servers: container.servers, preferences: container.preferences, launchAtLogin: container.launchAtLogin, updates: container.updates)
         }
     }
 }

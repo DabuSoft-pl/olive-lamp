@@ -7,6 +7,7 @@ struct PanelView: View {
     let model: PanelViewModel
     let actions: PanelController
     let preferences: Preferences
+    let updates: SoftwareUpdate
     /// Off only for snapshots: ImageRenderer draws nothing inside a ScrollView.
     var scrolls = true
     @Environment(\.openSettings) private var openSettings
@@ -143,8 +144,17 @@ struct PanelView: View {
                 .foregroundStyle(Palette.amberInk)
                 .disabled(model.servers.isEmpty)
             Spacer()
+            // Sparkle's window opens behind other apps after a scheduled check, so the panel offers the update.
+            if let version = updates.waitingVersion {
+                Button("Update to \(version)") { updates.checkNow() }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Palette.amberInk)
+            }
             Menu {
                 Button("Settings…") { SettingsWindow.open(with: openSettings, closing: dismiss) }
+                if updates.isAvailable {
+                    Button("Check for Updates…") { updates.checkNow() }
+                }
                 Divider()
                 Button("Quit Olive Lamp") { NSApp.terminate(nil) }
             } label: {

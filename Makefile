@@ -1,7 +1,7 @@
 DERIVED := build
 APP := "$(DERIVED)/Build/Products/Debug/Olive Lamp.app"
 
-.PHONY: generate build test test-live run clean
+.PHONY: generate build test test-live run release clean
 
 generate:
 	xcodegen generate --quiet
@@ -21,3 +21,8 @@ run: build
 
 clean:
 	rm -rf $(DERIVED) Lamp.xcodeproj OliveLamp.xcodeproj Packages/LampKit/.build
+
+# Developer ID signed, notarized DMG with the Sparkle feed and deltas in build/release; scripts/release.sh lists what
+# it needs (TEAM_ID=ZFG7SZ938C NOTARY_PROFILE=tendbar make release).
+release:
+	scripts/release.sh

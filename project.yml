@@ -22,6 +22,10 @@ settings:
 packages:
   LampKit:
     path: Packages/LampKit
+  # Updates: besides the user's own OliveTin servers, the only network use of the app, and it can be turned off.
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.1
 targets:
   OliveLamp:
     type: application
@@ -43,6 +47,10 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         NSLocalNetworkUsageDescription: Olive Lamp talks to the OliveTin servers you add.
+        # Sparkle: the feed is attached to every published GitHub release, the key checks each update's signature.
+        SUFeedURL: https://github.com/DabuSoft-pl/olive-lamp/releases/latest/download/appcast.xml
+        SUPublicEDKey: ov41jrERHiq96QoHi9d7qdiXY2GEwEhNMNmtFETmbWg= # gitleaks:allow (public half of the Sparkle key)
+        SUVerifyUpdateBeforeExtraction: true
     settings:
       base:
         PRODUCT_NAME: Olive Lamp
@@ -58,6 +66,8 @@ targets:
         product: LampApplication
       - package: LampKit
         product: LampInfrastructure
+      - package: Sparkle
+        product: Sparkle
 schemes:
   OliveLamp:
     build:

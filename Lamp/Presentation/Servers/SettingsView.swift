@@ -6,6 +6,7 @@ struct SettingsView: View {
     let servers: ServersController
     @Bindable var preferences: Preferences
     let launchAtLogin: LaunchAtLogin
+    @Bindable var updates: SoftwareUpdate
     @State private var list: [Server] = []
     @State private var adding = false
     @State private var signingIn: Server?
@@ -53,6 +54,21 @@ struct SettingsView: View {
                     Text("Allow Olive Lamp in System Settings → General → Login Items").foregroundStyle(.secondary)
                 } else if let error = launchAtLogin.error {
                     Text(error).foregroundStyle(Palette.bad)
+                }
+            }
+            if updates.isAvailable {
+                Section {
+                    Toggle("Check for updates automatically", isOn: $updates.checksAutomatically)
+                    Toggle("Receive beta versions", isOn: $updates.receivesBetas)
+                    HStack {
+                        Spacer()
+                        Button("Check Now") { updates.checkNow() }
+                    }
+                } header: {
+                    Text("Updates")
+                } footer: {
+                    Text("Once a day Olive Lamp reads the list of releases on GitHub. Nothing about you or your servers is sent")
+                        .foregroundStyle(.secondary)
                 }
             }
         }
