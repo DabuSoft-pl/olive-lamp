@@ -64,6 +64,7 @@ Domain  <-  Application  <-  Infrastructure
 
 ```bash
 make test        # Domain, Application and Infrastructure tests
+make test-auth   # every sign-in method against dev/auth (a local OliveTin: API key, trusted header, JWT cookie, local user)
 make test-live   # also against the web Lamp's mock: `PORT=8080 node dev/server.mjs` in olivetin-lamp first
 make build       # xcodegen + xcodebuild (Debug, ad-hoc signed) into build/
 make run         # build and open the app

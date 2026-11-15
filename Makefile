@@ -1,7 +1,7 @@
 DERIVED := build
 APP := "$(DERIVED)/Build/Products/Debug/Olive Lamp.app"
 
-.PHONY: generate build test test-live run release screenshots clean
+.PHONY: generate build test test-live test-auth run release screenshots clean
 
 generate:
 	xcodegen generate --quiet
@@ -32,3 +32,7 @@ release:
 # The README images, rendered from made-up data (Lamp/App/Screenshots.swift).
 screenshots: build
 	$(APP)/Contents/MacOS/"Olive Lamp" -AppleLanguages "(en)" -screenshots "$(CURDIR)/docs/images"
+
+# Every sign-in method against the local OliveTin in dev/auth (start it as dev/auth/config.yaml says).
+test-auth:
+	cd Packages/LampKit && OLIVETIN_AUTH_URL=http://127.0.0.1:1339 swift test --filter LiveAuthTests

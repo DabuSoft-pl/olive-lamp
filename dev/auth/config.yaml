@@ -1,0 +1,50 @@
+# A local OliveTin for trying every sign-in Olive Lamp supports. Throwaway credentials, never use them anywhere else.
+#   docker run -d --rm --name olivelamp-auth -p 127.0.0.1:1339:1337 -v "$PWD/dev/auth:/config" ghcr.io/olivetin/olivetin:latest
+#   OLIVETIN_AUTH_URL=http://127.0.0.1:1339 make test
+#
+# admin / lamp-test           local user: the server's sign-in page (Web sign-in in Olive Lamp)
+# automation, key below       API key (Authorization: Bearer)
+# X-Username: proxy-user      trusted header, as from a reverse proxy (Headers)
+# Cookie lamp_jwt=<HS256 JWT> JWT cookie, as from Organizr or Authelia (Headers); the tests sign one with the secret below
+logLevel: DEBUG
+authRequireGuestsToLogin: true
+
+authLocalUsers:
+  enabled: true
+  users:
+    - username: admin
+      usergroup: admins
+      password: "$argon2id$v=19$m=65536,t=4,p=3$6ESjLCBBJcrIDps5Z9N17Q$QjnqCCH8Zyg58LLiQe9Wg4iHPh2u0XfCl1NpWOgQwgw" # gitleaks:allow (hash of the test password lamp-test)
+    - username: automation
+      usergroup: admins
+      apiKey: "olivelamp-test-key-0123456789abcdef" # gitleaks:allow (test key)
+
+authHttpHeaderUsername: X-Username
+authHttpHeaderUserGroup: X-Usergroup
+
+authJwtCookieName: lamp_jwt
+authJwtHmacSecret: "olivelamp-test-secret-not-for-real-use" # gitleaks:allow (test secret)
+authJwtClaimUsername: username
+authJwtClaimUsergroup: usergroup
+
+defaultPermissions:
+  view: false
+  exec: false
+  logs: false
+  kill: false
+
+accessControlLists:
+  - name: testers
+    addToEveryAction: true
+    matchUsernames: [admin, automation, proxy-user, jwt-user]
+    permissions:
+      view: true
+      exec: true
+      logs: true
+      kill: true
+
+actions:
+  - title: Say hello
+    id: hello
+    shell: echo "hello from OliveTin"
+    icon: ping
