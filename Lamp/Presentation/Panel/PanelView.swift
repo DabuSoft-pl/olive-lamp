@@ -6,6 +6,7 @@ import SwiftUI
 struct PanelView: View {
     let model: PanelViewModel
     let actions: PanelController
+    let preferences: Preferences
     /// Off only for snapshots: ImageRenderer draws nothing inside a ScrollView.
     var scrolls = true
     @Environment(\.openSettings) private var openSettings
@@ -18,7 +19,7 @@ struct PanelView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if model.showingLog, let run = model.run {
-                RunLogView(run: run, model: model, actions: actions)
+                RunLogView(run: run, model: model, actions: actions, preferences: preferences)
             } else {
                 header
                 content
@@ -161,7 +162,9 @@ struct PanelView: View {
 
     /// As tall as the screen allows below the menu bar, leaving room for the header, the footer and a margin.
     private static var listHeight: CGFloat {
-        let screen = NSScreen.main?.visibleFrame.height ?? 800
+        // The panel opens under the lamp the user just clicked, so the screen under the pointer is the one it opens on.
+        let mouse = NSEvent.mouseLocation
+        let screen = (NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main)?.visibleFrame.height ?? 800
         return max(360, screen - 160)
     }
 

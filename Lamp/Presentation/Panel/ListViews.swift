@@ -85,7 +85,8 @@ struct ActionList: View {
 
     var body: some View {
         let groups = Self.groups(of: actions)
-        let shown = groups.count > 1 ? (group ?? groups.first ?? "") : nil
+        // A group picked on another server may not exist here; then the first group shows.
+        let shown = groups.count > 1 ? (group.flatMap { groups.contains($0) ? $0 : nil } ?? groups.first) : nil
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 4) {
                 Text("Actions")
@@ -145,35 +146,31 @@ private struct ActionRow: View {
         Group {
             if action.requiresHold, action.launch != .inBrowser {
                 HoldToRun(enabled: enabled, action: { controller.run(action) }) { progress in
-                    row(icon: AnyView(HoldRing(progress: progress, tint: Palette.amber)), subtitle: progress > 0 ? String(localized: "Keep holding") : String(localized: "Hold to run"), highlight: progress > 0)
+                    row(icon: AnyView(HoldRing(progress: progress, tint: Palette.amber)), subtitle: progress > 0 ? String(localized: "Keep holding") : String(localized: "Hold to run"), highlight: progress > 0, tap: nil)
                 }
                 .accessibilityLabel(Text("\(action.title), hold to run"))
             } else {
-                // Not a Button: a picker inside a button's label turns into plain text and cannot be opened.
+                let runnable = enabled || action.launch == .inBrowser
                 row(icon: AnyView(Image(systemName: action.launch == .inBrowser ? "arrow.up.forward.square" : "play.circle")
                     .font(.system(size: 14)).foregroundStyle(.secondary).frame(width: 16, height: 16)),
-                    subtitle: action.launch == .inBrowser ? String(localized: "Opens in the browser") : nil, highlight: false)
-                    .onTapGesture {
-                        if enabled || action.launch == .inBrowser { controller.run(action) }
-                    }
-                    .accessibilityElement(children: .contain)
-                    .accessibilityAddTraits(.isButton)
-                    .accessibilityAction { if enabled || action.launch == .inBrowser { controller.run(action) } }
+                    subtitle: action.launch == .inBrowser ? String(localized: "Opens in the browser") : nil, highlight: false,
+                    tap: runnable ? { controller.run(action) } : nil)
             }
         }
         .opacity(enabled || action.launch == .inBrowser ? 1 : 0.5)
         .onHover { hovering = $0 }
     }
 
-    private func row(icon: AnyView, subtitle: String?, highlight: Bool) -> some View {
-        HStack(spacing: 12) {
-            icon
-            VStack(alignment: .leading, spacing: 2) {
-                Text(action.title).font(.system(size: 13)).lineLimit(1)
-                if action.isRunning {
-                    Text("Running").font(.system(size: 12)).foregroundStyle(Palette.amberInk)
-                } else if let subtitle {
-                    Text(subtitle).font(.system(size: 12)).foregroundStyle(highlight ? AnyShapeStyle(Palette.amberInk) : AnyShapeStyle(.secondary))
+    /// `tap` makes the icon and title a button. The lists stay outside it: a picker inside a button's label turns into
+    /// plain text and cannot be opened.
+    private func row(icon: AnyView, subtitle: String?, highlight: Bool, tap: (() -> Void)?) -> some View {
+        HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                if let tap {
+                    Button(action: tap) { head(icon: icon, subtitle: subtitle, highlight: highlight) }
+                        .buttonStyle(.plain)
+                } else {
+                    head(icon: icon, subtitle: subtitle, highlight: highlight)
                 }
                 // Several lists sit under the title, each named, since a bare "cold" says nothing.
                 if lists.count > 1 {
@@ -185,15 +182,30 @@ private struct ActionRow: View {
                             }
                         }
                     }
-                    .padding(.top, 4)
+                    .padding(.leading, 28)
                 }
             }
-            Spacer(minLength: 8)
             if lists.count == 1 { picker(for: lists[0]) }
         }
         .padding(8)
         .frame(minHeight: 44)
         .background(hovering || highlight ? AnyShapeStyle(.quaternary.opacity(0.6)) : AnyShapeStyle(.clear), in: .rect(cornerRadius: 8))
+        .contentShape(Rectangle())
+    }
+
+    private func head(icon: AnyView, subtitle: String?, highlight: Bool) -> some View {
+        HStack(spacing: 12) {
+            icon
+            VStack(alignment: .leading, spacing: 2) {
+                Text(action.title).font(.system(size: 13)).lineLimit(1)
+                if action.isRunning {
+                    Text("Running").font(.system(size: 12)).foregroundStyle(Palette.amberInk)
+                } else if let subtitle {
+                    Text(subtitle).font(.system(size: 12)).foregroundStyle(highlight ? AnyShapeStyle(Palette.amberInk) : AnyShapeStyle(.secondary))
+                }
+            }
+            Spacer(minLength: 8)
+        }
         .contentShape(Rectangle())
     }
 

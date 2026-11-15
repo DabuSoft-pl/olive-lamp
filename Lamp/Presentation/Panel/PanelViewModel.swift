@@ -25,12 +25,18 @@ final class PanelViewModel: OverviewOutput, RunOutput {
     private(set) var servers: [Server] = []
     private(set) var selectedServer: UUID?
     /// The run the panel follows: started here, or found running on the server.
-    private(set) var run: RunProgress?
+    private(set) var run: RunProgress? {
+        didSet {
+            let output = run?.execution.output ?? ""
+            if output != oldValue?.execution.output { logLines = output.split(separator: "\n", omittingEmptySubsequences: false).map(String.init) }
+        }
+    }
+    /// The followed run's log, split into lines once per change for the log view.
+    private(set) var logLines: [String] = []
     private(set) var startProblem: String?
     /// A failure the user has not seen yet; opening the panel clears it.
     private(set) var unseenFailure = false
     var showingLog = false
-    /// The pick for each action with a list of choices.
     /// The user's choices: action id → argument name → value.
     var picks: [String: [String: String]] = [:]
 

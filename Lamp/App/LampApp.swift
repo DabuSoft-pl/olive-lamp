@@ -16,7 +16,7 @@ struct LampApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            PanelView(model: container.panel, actions: container.panelActions)
+            PanelView(model: container.panel, actions: container.panelActions, preferences: container.preferences)
         } label: {
             MenuBarLabel(panel: container.panel, statusMenu: container.statusMenu)
         }

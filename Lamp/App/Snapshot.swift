@@ -16,7 +16,7 @@ enum Snapshot {
         Task {
             try? await Task.sleep(for: .seconds(3))
             for (name, scheme) in [("panel-dark", ColorScheme.dark), ("panel-light", .light)] {
-                let view = PanelView(model: container.panel, actions: container.panelActions, scrolls: false)
+                let view = PanelView(model: container.panel, actions: container.panelActions, preferences: container.preferences, scrolls: false)
                     .background(scheme == .dark ? Color(white: 0.08) : Color(white: 0.98))
                     .environment(\.colorScheme, scheme)
                 let renderer = ImageRenderer(content: view)

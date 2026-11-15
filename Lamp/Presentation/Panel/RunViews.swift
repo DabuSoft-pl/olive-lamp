@@ -33,8 +33,8 @@ struct RunCard: View {
             let tail = execution.tail(2)
             if !tail.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(Array(tail.enumerated()), id: \.offset) { index, line in
-                        Text(line)
+                    ForEach(tail.indices, id: \.self) { index in
+                        Text(tail[index])
                             .foregroundStyle(index == tail.count - 1 ? .secondary : .tertiary)
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -66,7 +66,7 @@ struct RunLogView: View {
     let run: RunProgress
     let model: PanelViewModel
     let actions: PanelController
-    @AppStorage(Preferences.Key.notifyWhenDone) private var notifyWhenDone = true
+    @Bindable var preferences: Preferences
 
     var body: some View {
         let execution = run.execution
@@ -121,13 +121,13 @@ struct RunLogView: View {
                 .padding(.bottom, 12)
             }
 
-            LogText(output: execution.output)
+            LogText(lines: model.logLines)
                 .frame(height: 480)
                 .background(Palette.inset, in: .rect(cornerRadius: 10))
                 .padding(.horizontal, 8)
 
             HStack(spacing: 8) {
-                Toggle("Notify when done", isOn: $notifyWhenDone)
+                Toggle("Notify when done", isOn: $preferences.notifyWhenDone)
                     .toggleStyle(.checkbox)
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
@@ -145,13 +145,15 @@ struct RunLogView: View {
 
 /// Ansible-aware colouring, kept to the palette: tasks quiet, `ok` green, `changed` amber, failures red.
 private struct LogText: View {
-    let output: String
+    /// Split once per new output by the view model, not on every redraw. A log only grows, so a line's index is its
+    /// identity.
+    let lines: [String]
 
     var body: some View {
-        let lines = output.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 2) {
-                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                ForEach(lines.indices, id: \.self) { index in
+                    let line = lines[index]
                     Text(line.isEmpty ? " " : line)
                         .foregroundStyle(Self.color(of: line))
                         .frame(maxWidth: .infinity, alignment: .leading)
