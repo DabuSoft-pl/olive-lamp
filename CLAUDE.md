@@ -65,4 +65,4 @@ logo. The menu bar mark stays a template symbol on purpose.
 
 ## Next
 
-Web sign-in (a `WKWebView` sheet that keeps the domain's cookies), launch at login, Sparkle, notarized release, Homebrew. Plan: `~/Projekty/vault/Projekty/Lamp na Maca/`.
+Sparkle, notarized release, Homebrew. Plan: `~/Projekty/vault/Projekty/Lamp na Maca/`.
