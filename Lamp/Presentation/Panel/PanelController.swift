@@ -12,13 +12,17 @@ final class PanelController {
     private let stopRun: StopRun
     private let chooseEntities: ChooseEntities
     private let preferences: Preferences
+    /// The token `olivelamp://run` links must carry; nil turns links off.
+    private let linkToken: String?
     private var refreshing: Task<Void, Never>?
     private var following: Task<Void, Never>?
 
     init(
         model: PanelViewModel, directory: ServerDirectory, refreshOverview: RefreshOverview, runAction: RunAction,
-        stopRun: StopRun, chooseEntities: ChooseEntities, preferences: Preferences
+        stopRun: StopRun, chooseEntities: ChooseEntities, preferences: Preferences,
+        linkToken: String? = nil
     ) {
+        self.linkToken = linkToken
         self.model = model
         self.directory = directory
         self.refreshOverview = refreshOverview
@@ -81,6 +85,47 @@ final class PanelController {
         refreshing?.cancel()
         refreshing = nil
         refresh()
+    }
+
+    /// Runs an action from an `olivelamp://run` link, on a fresh read of its server, by the same rules as the panel.
+    func open(_ url: URL) {
+        guard let linkToken, let request = RunRequest(url: url) else { return }
+        do throws(RunRequest.Problem) {
+            try request.check(token: linkToken)
+        } catch {
+            return
+        }
+        if let id = request.server, id != model.selectedServer, let server = directory.servers.first(where: { $0.id == id }) {
+            select(server)
+        }
+        Task {
+            refreshing?.cancel()
+            refreshing = nil
+            await refreshOverview()
+            guard request.server == nil || request.server == model.selectedServer else { return }
+            guard let action = model.overview?.actions.first(where: { $0.id == request.actionID }) else {
+                model.showLinkProblem(String(localized: "Olive Lamp found no action \(request.actionID) on this server"))
+                return
+            }
+            do throws(RunRequest.Problem) {
+                let picks = try request.picks(for: action)
+                if !picks.isEmpty { model.picks[action.id, default: [:]].merge(picks) { $1 } }
+                if let reason = request.reason { model.reasons[action.id] = reason }
+                run(action)
+            } catch {
+                model.showLinkProblem(Self.text(of: error, action: action))
+            }
+        }
+    }
+
+    private static func text(of problem: RunRequest.Problem, action: Action) -> String {
+        switch problem {
+        case .wrongToken, .unknownAction: String(localized: "Olive Lamp found no action \(action.title) on this server")
+        case .cannotRun: String(localized: "You may not run \(action.title)")
+        case .needsConfirmation: String(localized: "\(action.title) runs only after you confirm it")
+        case .needsBrowser: String(localized: "\(action.title) runs from the web page")
+        case .notAChoice(let argument): String(localized: "\(action.title) does not offer that \(argument)")
+        }
     }
 
     func stop() {

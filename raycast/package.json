@@ -1,0 +1,37 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "olive-lamp",
+  "title": "Olive Lamp",
+  "description": "Run your OliveTin actions through Olive Lamp, the menu bar app for OliveTin.",
+  "icon": "icon.png",
+  "author": "dabusoft",
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "platforms": [
+    "macOS"
+  ],
+  "commands": [
+    {
+      "name": "run-action",
+      "title": "Run OliveTin Action",
+      "subtitle": "Olive Lamp",
+      "description": "Lists the actions of the server Olive Lamp shows and runs one.",
+      "mode": "view"
+    }
+  ],
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop"
+  },
+  "dependencies": {
+    "@raycast/api": "^2.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}

@@ -16,9 +16,10 @@ final class AppContainer {
     let updates: SoftwareUpdate
     private(set) lazy var statusMenu = StatusItemMenu(panel: panel, actions: panelActions, updates: updates)
     private var timer: Timer?
+    private var links: LinkReceiver?
 
     init(repository: any ServerRepository, credentials: any CredentialStore, gateways: any GatewayMaking, clock: any Clock, preferences: Preferences,
-        updates: SoftwareUpdate = SoftwareUpdate(starting: false)
+        updates: SoftwareUpdate = SoftwareUpdate(starting: false), catalog: (any ActionCatalog)? = nil
     ) {
         self.preferences = preferences
         self.updates = updates
@@ -28,11 +29,12 @@ final class AppContainer {
         panelActions = PanelController(
             model: panel,
             directory: directory,
-            refreshOverview: RefreshOverview(directory: directory, clock: clock, output: panel),
+            refreshOverview: RefreshOverview(directory: directory, clock: clock, output: panel, catalog: catalog),
             runAction: runAction,
             stopRun: StopRun(directory: directory, runs: runAction),
             chooseEntities: ChooseEntities(directory: directory),
-            preferences: preferences
+            preferences: preferences,
+            linkToken: catalog?.token
         )
         servers = ServersController(
             directory: directory, probe: probe, addServer: AddServer(directory: directory, probe: probe),
@@ -47,7 +49,8 @@ final class AppContainer {
             gateways: HTTPGatewayFactory(),
             clock: SystemClock(),
             preferences: Preferences(),
-            updates: SoftwareUpdate(starting: !Self.isSnapshot)
+            updates: SoftwareUpdate(starting: !Self.isSnapshot),
+            catalog: Self.isSnapshot ? nil : JSONActionCatalog(directory: JSONServerRepository.defaultDirectory())
         )
     }
 
@@ -59,6 +62,9 @@ final class AppContainer {
     /// Reads the server now and every minute, so the menu bar mark stays current while the panel is closed.
     func start() {
         statusMenu.start()
+        let links = LinkReceiver { [weak self] url in self?.panelActions.open(url) }
+        links.start()
+        self.links = links
         panelActions.refresh()
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.panelActions.refresh() }

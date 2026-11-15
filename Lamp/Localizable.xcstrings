@@ -11,6 +11,16 @@
         }
       }
     },
+    "%@ does not offer that %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ nie ma takiej opcji: %2$@"
+          }
+        }
+      }
+    },
     "%@ failed" : {
       "localizations" : {
         "pl" : {
@@ -27,6 +37,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@: gotowe"
+          }
+        }
+      }
+    },
+    "%@ runs from the web page" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ uruchamia się ze strony WWW"
+          }
+        }
+      }
+    },
+    "%@ runs only after you confirm it" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ uruchomi się dopiero po potwierdzeniu"
           }
         }
       }
@@ -517,6 +547,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Olive Lamp"
+          }
+        }
+      }
+    },
+    "Olive Lamp found no action %@ on this server" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olive Lamp nie znalazł na tym serwerze akcji %@"
           }
         }
       }
@@ -1067,6 +1107,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dlaczego to uruchamiasz"
+          }
+        }
+      }
+    },
+    "You may not run %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie możesz uruchomić akcji %@"
           }
         }
       }

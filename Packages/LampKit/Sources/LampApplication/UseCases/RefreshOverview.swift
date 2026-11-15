@@ -7,11 +7,13 @@ public final class RefreshOverview {
     private let directory: ServerDirectory
     private let clock: any Clock
     private weak var output: (any OverviewOutput)?
+    private let catalog: (any ActionCatalog)?
 
-    public init(directory: ServerDirectory, clock: any Clock, output: any OverviewOutput) {
+    public init(directory: ServerDirectory, clock: any Clock, output: any OverviewOutput, catalog: (any ActionCatalog)? = nil) {
         self.directory = directory
         self.clock = clock
         self.output = output
+        self.catalog = catalog
     }
 
     public func callAsFunction() async {
@@ -39,6 +41,7 @@ public final class RefreshOverview {
                 checkedAt: clock.now
             )
             output?.show(overview)
+            try? catalog?.publish(overview)
         } catch {
             output?.showProblem(GatewayError.from(error), server: server)
         }

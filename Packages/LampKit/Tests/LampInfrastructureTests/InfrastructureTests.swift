@@ -189,3 +189,31 @@ struct MockServerTests {
         }
     }
 }
+
+@Suite struct ActionCatalogTests {
+    @Test func catalogIsPrivateAndKeepsItsToken() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "lamp-catalog-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let catalog = JSONActionCatalog(directory: directory)
+        #expect(catalog.token.count == 64)
+        let hosts = ActionArgument(name: "limit", title: "Machine", kind: .choice([.init(value: "nas", title: "nas")]))
+        let overview = Overview(
+            server: Server(name: "Homelab", address: URL(string: "https://panel.example.ts.net")!, signIn: .automatic),
+            info: ServerInfo(title: "", version: "", user: "", loginRequired: false, offersLocalLogin: false, oAuthProviders: [], rootDashboards: []),
+            actions: [
+                Action(id: "update", title: "Update", group: "Everyday", arguments: [hosts, ActionArgument(name: "c", title: "", kind: .confirmation)]),
+                Action(id: "off", title: "Off", canRun: false),
+            ],
+            machines: [], history: [], checkedAt: Date()
+        )
+        try catalog.publish(overview)
+        let file = directory.appending(path: "actions.json")
+        let permissions = try FileManager.default.attributesOfItem(atPath: file.path)[.posixPermissions] as? Int
+        #expect(permissions == 0o600)
+        let record = try JSONDecoder().decode(JSONActionCatalog.Record.self, from: Data(contentsOf: file))
+        #expect(record.actions?.map(\.id) == ["update"])
+        #expect(record.actions?.first?.hold == true)
+        #expect(record.actions?.first?.arguments.first?.initial == "nas")
+        #expect(JSONActionCatalog(directory: directory).token == catalog.token)
+    }
+}

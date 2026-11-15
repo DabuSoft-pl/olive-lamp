@@ -47,6 +47,10 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         NSLocalNetworkUsageDescription: Olive Lamp talks to the OliveTin servers you add.
+        # olivelamp://run links from the Raycast extension; each needs the token from actions.json.
+        CFBundleURLTypes:
+          - CFBundleURLName: pl.dabusoft.olivelamp
+            CFBundleURLSchemes: [olivelamp]
         # Sparkle: the feed is attached to every published GitHub release, the key checks each update's signature.
         SUFeedURL: https://github.com/DabuSoft-pl/olive-lamp/releases/latest/download/appcast.xml
         SUPublicEDKey: ov41jrERHiq96QoHi9d7qdiXY2GEwEhNMNmtFETmbWg= # gitleaks:allow (public half of the Sparkle key)

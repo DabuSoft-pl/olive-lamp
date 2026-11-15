@@ -318,3 +318,41 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         #expect(SessionCookies.credential(from: [cookie("a", domain: "other.org")], for: URL(string: "https://panel.example.com")!) == nil)
     }
 }
+
+@Suite struct RunRequestTests {
+    let hosts = ActionArgument(name: "limit", title: "Machine", kind: .choice([.init(value: "nas", title: "nas"), .init(value: "all", title: "All")]))
+    let confirm = ActionArgument(name: "confirm", title: "Sure?", kind: .confirmation)
+
+    func request(_ query: String) -> RunRequest? {
+        RunRequest(url: URL(string: "olivelamp://run?\(query)")!)
+    }
+
+    @Test func readsALink() throws {
+        let server = UUID()
+        let link = try #require(request("token=abc&server=\(server.uuidString)&action=update&confirmed=1&reason=patch%20day&arg.limit=nas"))
+        #expect(link == RunRequest(token: "abc", server: server, actionID: "update", confirmed: true, reason: "patch day", arguments: ["limit": "nas"]))
+        #expect(request("action=update") == nil)
+        #expect(RunRequest(url: URL(string: "https://example.com/run?token=a&action=b")!) == nil)
+    }
+
+    @Test func tokenMustMatch() throws {
+        let link = try #require(request("token=abc&action=a"))
+        #expect(throws: Never.self) { try link.check(token: "abc") }
+        #expect(throws: RunRequest.Problem.wrongToken) { try link.check(token: "abd") }
+        #expect(throws: RunRequest.Problem.wrongToken) { try link.check(token: "abcd") }
+        #expect(throws: RunRequest.Problem.wrongToken) { try link.check(token: "") }
+    }
+
+    @Test func holdWantsConfirmationAndChoicesMustBeOffered() throws {
+        let update = Action(id: "update", title: "Update", arguments: [hosts, confirm])
+        #expect(throws: RunRequest.Problem.needsConfirmation) { try request("token=t&action=update&arg.limit=nas")!.picks(for: update) }
+        #expect(try request("token=t&action=update&confirmed=1&arg.limit=nas")!.picks(for: update) == ["limit": "nas"])
+        #expect(try request("token=t&action=update&confirmed=1")!.picks(for: update) == [:])
+        #expect(throws: RunRequest.Problem.notAChoice("Machine")) {
+            try request("token=t&action=update&confirmed=1&arg.limit=everything")!.picks(for: update)
+        }
+        let text = Action(id: "say", title: "Say", arguments: [ActionArgument(name: "text", title: "Text", kind: .other("ascii"))])
+        #expect(throws: RunRequest.Problem.needsBrowser) { try request("token=t&action=say")!.picks(for: text) }
+        #expect(throws: RunRequest.Problem.cannotRun) { try request("token=t&action=x")!.picks(for: Action(id: "x", title: "X", canRun: false)) }
+    }
+}

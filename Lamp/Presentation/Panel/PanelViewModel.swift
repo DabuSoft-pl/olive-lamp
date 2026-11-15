@@ -72,6 +72,11 @@ final class PanelViewModel: OverviewOutput, RunOutput {
         startProblem = nil
     }
 
+    /// A link from another app that could not start its action; shown where a failed start is.
+    func showLinkProblem(_ text: String) {
+        startProblem = text
+    }
+
     // MARK: OverviewOutput
 
     func show(_ overview: Overview) {

@@ -27,6 +27,8 @@ It works with a stock OliveTin 3000; nothing has to be installed on the server.
 - **Signs in the way your server expects:** nothing at all behind Tailscale Serve or for guests, an OliveTin API key,
   your own headers (a JWT, a Cloudflare Access service token), or the server's own sign-in page.
 - **Several servers**, switched from the panel or the right-click menu.
+- **Raycast.** The extension in [`raycast/`](raycast) lists the actions of the server Olive Lamp shows and runs them
+  through the app.
 - **English and Polish.**
 
 ## Privacy
