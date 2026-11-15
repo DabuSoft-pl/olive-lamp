@@ -28,7 +28,10 @@ final class AppContainer {
             stopRun: StopRun(directory: directory),
             preferences: preferences
         )
-        servers = ServersController(directory: directory, probe: probe, addServer: AddServer(directory: directory, probe: probe), panel: panelActions)
+        servers = ServersController(
+            directory: directory, probe: probe, addServer: AddServer(directory: directory, probe: probe),
+            signInAgain: SignInAgain(directory: directory, probe: probe), panel: panelActions
+        )
     }
 
     static func live() -> AppContainer {

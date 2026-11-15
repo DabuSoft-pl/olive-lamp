@@ -8,12 +8,14 @@ final class ServersController {
     private let directory: ServerDirectory
     private let probe: ProbeServer
     private let addServer: AddServer
+    private let signInAgain: SignInAgain
     private let panel: PanelController
 
-    init(directory: ServerDirectory, probe: ProbeServer, addServer: AddServer, panel: PanelController) {
+    init(directory: ServerDirectory, probe: ProbeServer, addServer: AddServer, signInAgain: SignInAgain, panel: PanelController) {
         self.directory = directory
         self.probe = probe
         self.addServer = addServer
+        self.signInAgain = signInAgain
         self.panel = panel
     }
 
@@ -26,6 +28,11 @@ final class ServersController {
     func add(name: String, address: URL, signIn: SignInMethod, credential: Credential?) async throws(GatewayError) {
         _ = try await addServer(name: name, address: address, signIn: signIn, credential: credential)
         panel.syncServers()
+        panel.refresh()
+    }
+
+    func signIn(_ server: Server, with credential: Credential) async throws(GatewayError) {
+        try await signInAgain(server, credential: credential)
         panel.refresh()
     }
 

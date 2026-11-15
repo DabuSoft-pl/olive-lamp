@@ -8,6 +8,7 @@ struct SettingsView: View {
     let launchAtLogin: LaunchAtLogin
     @State private var list: [Server] = []
     @State private var adding = false
+    @State private var signingIn: Server?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -26,6 +27,10 @@ struct SettingsView: View {
                         }
                         Spacer()
                         Text(SignInText.of(server.signIn)).foregroundStyle(.secondary)
+                        if server.signIn == .webSession {
+                            Button("Sign In Again…") { signingIn = server }
+                                .buttonStyle(.borderless)
+                        }
                         Button("Remove", role: .destructive) {
                             servers.remove(server)
                             list = servers.servers
@@ -67,6 +72,13 @@ struct SettingsView: View {
         .sheet(isPresented: $adding, onDismiss: { list = servers.servers }) {
             AddServerView(servers: servers)
         }
+        .sheet(item: $signingIn) { server in
+            WebSignInView(address: server.address) { credential throws(GatewayError) in
+                try await servers.check(address: server.address, credential: credential)
+            } signedIn: { credential, _ in
+                Task { try? await servers.signIn(server, with: credential) }
+            }
+        }
     }
 }
 
@@ -90,6 +102,9 @@ struct AddServerView: View {
     @State private var method: SignInMethod = .automatic
     @State private var apiKey = ""
     @State private var headers: [HeaderRow] = [HeaderRow(), HeaderRow()]
+    /// The session the web sign-in sheet brought back.
+    @State private var session: Credential?
+    @State private var signingIn = false
     @State private var status: Status = .idle
 
     enum Status: Equatable {
@@ -122,6 +137,7 @@ struct AddServerView: View {
                     Text("Automatic").tag(SignInMethod.automatic)
                     Text("API key").tag(SignInMethod.apiKey)
                     Text("Headers").tag(SignInMethod.headers)
+                    Text("Web sign-in").tag(SignInMethod.webSession)
                 }
                 .onChange(of: method) { status = .idle }
                 switch method {
@@ -134,7 +150,17 @@ struct AddServerView: View {
                             SecureField("Value", text: $row.value)
                         }
                     }
-                default:
+                case .webSession:
+                    LabeledContent("Session") {
+                        HStack(spacing: 8) {
+                            if session != nil {
+                                Text("Kept").foregroundStyle(.secondary)
+                            }
+                            Button(session == nil ? "Open Sign-In…" : "Sign In Again…") { signingIn = true }
+                                .disabled(address == nil)
+                        }
+                    }
+                case .automatic:
                     EmptyView()
                 }
                 Text(help).font(.system(size: 12)).foregroundStyle(.secondary)
@@ -153,11 +179,22 @@ struct AddServerView: View {
                     .keyboardShortcut(.cancelAction)
                 Button("Add Server") { Task { await add() } }
                     .keyboardShortcut(.defaultAction)
-                    .disabled(address == nil || status == .checking)
+                    .disabled(address == nil || status == .checking || (method == .webSession && session == nil))
             }
             .padding(20)
         }
         .frame(width: 520)
+        .onChange(of: addressText) { session = nil }
+        .sheet(isPresented: $signingIn) {
+            if let address {
+                WebSignInView(address: address) { credential throws(GatewayError) in
+                    try await servers.check(address: address, credential: credential)
+                } signedIn: { credential, info in
+                    session = credential
+                    status = .found(info)
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -189,7 +226,7 @@ struct AddServerView: View {
         case .headers:
             String(localized: "A JWT, or a service token for Cloudflare Access and similar proxies")
         case .webSession:
-            ""
+            String(localized: "The server's own login: a username and password, GitHub, or the proxy in front of it. Lamp keeps the session and asks again when it expires")
         }
     }
 
@@ -197,8 +234,10 @@ struct AddServerView: View {
 
     private var credential: Credential? {
         switch method {
-        case .automatic, .webSession:
+        case .automatic:
             return nil
+        case .webSession:
+            return session
         case .apiKey:
             let key = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
             return key.isEmpty ? nil : .apiKey(key)

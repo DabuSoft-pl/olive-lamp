@@ -401,12 +401,32 @@
         }
       }
     },
+    "I'm Signed In" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jestem zalogowany"
+          }
+        }
+      }
+    },
     "Keep holding" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trzymaj dalej"
+          }
+        }
+      }
+    },
+    "Kept" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zachowana"
           }
         }
       }
@@ -517,6 +537,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adres OliveTina"
+          }
+        }
+      }
+    },
+    "Open Sign-In…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwórz logowanie…"
           }
         }
       }
@@ -641,6 +671,16 @@
         }
       }
     },
+    "Session" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesja"
+          }
+        }
+      }
+    },
     "Settings" : {
       "localizations" : {
         "pl" : {
@@ -671,6 +711,16 @@
         }
       }
     },
+    "Sign In Again…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaloguj ponownie…"
+          }
+        }
+      }
+    },
     "Sign In…" : {
       "localizations" : {
         "pl" : {
@@ -687,6 +737,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logowanie"
+          }
+        }
+      }
+    },
+    "Sign in as you do in the browser" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaloguj się tak jak w przeglądarce"
           }
         }
       }
@@ -741,12 +801,42 @@
         }
       }
     },
+    "The server has not given Lamp a session yet" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwer nie dał jeszcze Lampie sesji"
+          }
+        }
+      }
+    },
+    "The server still sees a guest. Finish signing in on the page" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwer nadal widzi gościa. Dokończ logowanie na stronie"
+          }
+        }
+      }
+    },
     "The server wants you to sign in again" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Serwer prosi o ponowne zalogowanie"
+          }
+        }
+      }
+    },
+    "The server's own login: a username and password, GitHub, or the proxy in front of it. Lamp keeps the session and asks again when it expires" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logowanie samego serwera: login i hasło, GitHub albo proxy przed nim. Lampa zachowuje sesję i poprosi ponownie, gdy wygaśnie"
           }
         }
       }

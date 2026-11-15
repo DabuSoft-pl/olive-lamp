@@ -176,6 +176,24 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         #expect(AddServer.fallbackName(info: info, address: URL(string: "https://ops.example.com:1337")!) == "ops.example.com")
     }
 
+    @Test func signingInAgainKeepsTheNewSession() async throws {
+        let directory = directory()
+        let server = try #require(directory.selected)
+        try await SignInAgain(directory: directory, probe: ProbeServer(directory: directory))(server, credential: .cookies(["olivetin-sid-local": "new"]))
+        #expect(credentials.items[server.id] == .cookies(["olivetin-sid-local": "new"]))
+    }
+
+    @Test func signingInAgainAsAGuestKeepsNothing() async throws {
+        gateway.serverInfo.user = "guest"
+        gateway.serverInfo.loginRequired = true
+        let directory = directory()
+        let server = try #require(directory.selected)
+        await #expect(throws: GatewayError.signInNeeded) {
+            try await SignInAgain(directory: directory, probe: ProbeServer(directory: directory))(server, credential: .cookies(["a": "b"]))
+        }
+        #expect(credentials.items[server.id] == nil)
+    }
+
     @Test func removingAServerDropsItsSecret() throws {
         let directory = directory()
         let id = try #require(directory.selected?.id)
@@ -183,5 +201,28 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         try directory.remove(id)
         #expect(credentials.items[id] == nil)
         #expect(directory.selected == nil)
+    }
+}
+
+@Suite struct SessionCookiesTests {
+    func cookie(_ name: String, domain: String, expires: Date? = nil) -> HTTPCookie {
+        var properties: [HTTPCookiePropertyKey: Any] = [.name: name, .value: "v-\(name)", .domain: domain, .path: "/"]
+        if let expires { properties[.expires] = expires }
+        return HTTPCookie(properties: properties)!
+    }
+
+    @Test func keepsOnlyWhatTheServerWouldGet() {
+        let cookies = [
+            cookie("olivetin-sid-local", domain: "panel.example.com"),
+            cookie("authelia_session", domain: ".example.com"),
+            cookie("user_session", domain: "github.com"),
+            cookie("old", domain: "panel.example.com", expires: .distantPast),
+        ]
+        let credential = SessionCookies.credential(from: cookies, for: URL(string: "https://panel.example.com/")!)
+        #expect(credential == .cookies(["olivetin-sid-local": "v-olivetin-sid-local", "authelia_session": "v-authelia_session"]))
+    }
+
+    @Test func noCookiesNoCredential() {
+        #expect(SessionCookies.credential(from: [cookie("a", domain: "other.org")], for: URL(string: "https://panel.example.com")!) == nil)
     }
 }
