@@ -71,9 +71,21 @@ public struct Execution: Identifiable, Equatable, Sendable {
     }
 
     /// The last lines of output that say something.
+    /// The last lines worth reading at a glance: colour codes gone, filler rules like Ansible's "Task ------ 0.30s"
+    /// squeezed to "Task · 0.30s", and lines of nothing but punctuation skipped. The full log stays as it was.
     public func tail(_ count: Int) -> [String] {
-        let lines = output.split(separator: "\n", omittingEmptySubsequences: true).map(String.init)
+        let lines = output.split(whereSeparator: \.isNewline).compactMap { Self.readable(String($0)) }
         return Array(lines.suffix(count))
+    }
+
+    static func readable(_ line: String) -> String? {
+        var text = line.replacing(/\u{1B}\[[0-9;?]*[A-Za-z]/, with: "")
+        text = text.replacing(/\s*[-*=_~.]{4,}\s*/, with: " · ")
+        text = text.trimmingCharacters(in: .whitespaces)
+        if text.hasPrefix("· ") { text.removeFirst(2) }
+        if text.hasSuffix(" ·") { text.removeLast(2) }
+        guard text.contains(where: { $0.isLetter || $0.isNumber }) else { return nil }
+        return text
     }
 }
 

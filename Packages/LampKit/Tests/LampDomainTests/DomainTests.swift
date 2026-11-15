@@ -81,6 +81,9 @@ import Testing
         var execution = run(finished: false)
         execution.output = "one\n\ntwo\nthree\n"
         #expect(execution.tail(2) == ["two", "three"])
+        let ansible = Execution(id: "y", actionID: "a", actionTitle: "A", startedAt: .now,
+                                output: "Pule ZFS ------------------ 0.30s\n\u{1B}[0;32mok: [pve]\u{1B}[0m\n  _ ''\n***********\n")
+        #expect(ansible.tail(3) == ["Pule ZFS · 0.30s", "ok: [pve]"])
     }
 
     @Test func estimateIsTheMedianOfSuccessfulRuns() throws {
