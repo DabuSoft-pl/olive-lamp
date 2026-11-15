@@ -11,6 +11,8 @@ struct PanelView: View {
     @Environment(\.openSettings) private var openSettings
     /// The menu bar window keeps the last offset, or lands at the bottom; every opening starts at the top.
     @State private var scroll = ScrollPosition(edge: .top)
+    /// The lists' own height: the menu bar window gives a ScrollView no height of its own, so it would shrink to nothing.
+    @State private var listsHeight: CGFloat = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -106,11 +108,14 @@ struct PanelView: View {
                 .padding(.top, 8)
         }
         if scrolls {
-            ScrollView { lists(of: overview) }
+            ScrollView {
+                lists(of: overview)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { listsHeight = $0 }
+            }
                 .scrollPosition($scroll)
                 .defaultScrollAnchor(.top)
                 .scrollBounceBehavior(.basedOnSize)
-                .frame(maxHeight: Self.listHeight)
+                .frame(height: min(max(listsHeight, 120), Self.listHeight))
         } else {
             lists(of: overview)
         }
