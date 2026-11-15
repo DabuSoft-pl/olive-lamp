@@ -25,19 +25,20 @@ public struct Action: Identifiable, Equatable, Sendable {
     public var launch: Launch {
         let asked = arguments.filter { $0.kind != .confirmation }
         if asked.isEmpty { return .direct }
-        if asked.count == 1, case .choice(let choices) = asked[0].kind, !choices.isEmpty { return .pick(asked[0]) }
-        return .inBrowser
+        let lists = asked.allSatisfy { if case .choice(let choices) = $0.kind { !choices.isEmpty } else { false } }
+        return lists ? .pick(asked) : .inBrowser
     }
 
-    /// The arguments to send: the user's pick, and "1" for the confirmation (it guards against accidents, not access).
-    public func startArguments(picked: String? = nil) -> [String: String] {
+    /// The arguments to send: the user's picks by argument name (else the list's default), and "1" for the
+    /// confirmation (it guards against accidents, not access).
+    public func startArguments(picked: [String: String] = [:]) -> [String: String] {
         var values: [String: String] = [:]
         for argument in arguments {
             switch argument.kind {
             case .confirmation:
                 values[argument.name] = "1"
             case .choice:
-                if let picked { values[argument.name] = picked }
+                if let value = picked[argument.name] ?? argument.initialChoice { values[argument.name] = value }
             case .other:
                 break
             }
@@ -47,9 +48,9 @@ public struct Action: Identifiable, Equatable, Sendable {
 
     public enum Launch: Equatable, Sendable {
         case direct
-        /// One list of choices, picked from a menu.
-        case pick(ActionArgument)
-        /// Free text or several arguments: the web page asks better than a menu.
+        /// One or more lists of choices, each picked from a menu.
+        case pick([ActionArgument])
+        /// Free text or another kind of argument: the web page asks better than a menu.
         case inBrowser
     }
 }
@@ -58,11 +59,21 @@ public struct ActionArgument: Equatable, Sendable {
     public var name: String
     public var title: String
     public var kind: Kind
+    /// The value OliveTin preselects, if the action's config gives one.
+    public var defaultValue: String?
 
-    public init(name: String, title: String, kind: Kind) {
+    public init(name: String, title: String, kind: Kind, defaultValue: String? = nil) {
         self.name = name
         self.title = title
         self.kind = kind
+        self.defaultValue = defaultValue
+    }
+
+    /// What a list starts at: the configured default when it is one of the choices, else the first choice.
+    public var initialChoice: String? {
+        guard case .choice(let choices) = kind else { return nil }
+        if let defaultValue, choices.contains(where: { $0.value == defaultValue }) { return defaultValue }
+        return choices.first?.value
     }
 
     public enum Kind: Equatable, Sendable {

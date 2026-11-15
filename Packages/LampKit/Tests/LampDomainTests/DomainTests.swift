@@ -22,14 +22,22 @@ import Testing
 
     @Test func oneChoiceIsPickedFromAMenu() {
         let action = Action(id: "update", title: "Update", arguments: [machine, confirm])
-        #expect(action.launch == .pick(machine))
-        #expect(action.startArguments(picked: "nas") == ["limit": "nas", "confirm": "1"])
+        #expect(action.launch == .pick([machine]))
+        #expect(action.startArguments(picked: ["limit": "nas"]) == ["limit": "nas", "confirm": "1"])
+        #expect(action.startArguments() == ["limit": "nas", "confirm": "1"])
     }
 
-    @Test func freeTextOrSeveralArgumentsGoToTheBrowser() {
+    @Test func severalListsArePickedEachWithItsDefault() {
+        let mode = ActionArgument(name: "mode", title: "Mode", kind: .choice([.init(value: "cold", title: "cold"), .init(value: "reboot", title: "reboot")]), defaultValue: "reboot")
+        let action = Action(id: "restart", title: "Restart", arguments: [machine, mode, confirm])
+        #expect(action.launch == .pick([machine, mode]))
+        #expect(action.startArguments(picked: ["limit": "all"]) == ["limit": "all", "mode": "reboot", "confirm": "1"])
+    }
+
+    @Test func freeTextGoesToTheBrowser() {
         let text = ActionArgument(name: "message", title: "Message", kind: .other("ascii"))
         #expect(Action(id: "a", title: "A", arguments: [text]).launch == .inBrowser)
-        #expect(Action(id: "b", title: "B", arguments: [machine, machine]).launch == .inBrowser)
+        #expect(Action(id: "b", title: "B", arguments: [machine, text]).launch == .inBrowser)
         #expect(Action(id: "c", title: "C", arguments: [ActionArgument(name: "x", title: "X", kind: .choice([]))]).launch == .inBrowser)
     }
 }

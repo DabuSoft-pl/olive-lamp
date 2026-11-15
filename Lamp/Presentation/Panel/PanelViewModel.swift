@@ -31,7 +31,8 @@ final class PanelViewModel: OverviewOutput, RunOutput {
     private(set) var unseenFailure = false
     var showingLog = false
     /// The pick for each action with a list of choices.
-    var picks: [String: String] = [:]
+    /// The user's choices: action id → argument name → value.
+    var picks: [String: [String: String]] = [:]
 
     var history: [Execution] { overview?.history ?? [] }
 

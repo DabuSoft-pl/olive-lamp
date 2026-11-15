@@ -20,7 +20,7 @@ import LampDomain
         let actions = try JSONDecoder().decode(DashboardReply.self, from: Data(json.utf8)).actions
         #expect(actions.map(\.id) == ["check", "prune", "loose"])
         #expect(actions.map(\.group) == ["Everyday", "Everyday", nil])
-        #expect(actions[0].launch == .pick(ActionArgument(name: "limit", title: "Machine", kind: .choice([.init(value: "nas", title: "nas")]))))
+        #expect(actions[0].launch == .pick([ActionArgument(name: "limit", title: "Machine", kind: .choice([.init(value: "nas", title: "nas")]))]))
         #expect(actions[1].requiresHold)
         #expect(actions[1].isRunning)
         #expect(!actions[2].canRun)

@@ -163,17 +163,21 @@ private struct ActionRow: View {
                 } else if let subtitle {
                     Text(subtitle).font(.system(size: 12)).foregroundStyle(highlight ? AnyShapeStyle(Palette.amberInk) : AnyShapeStyle(.secondary))
                 }
+                // Several lists sit under the title, each named, since a bare "cold" says nothing.
+                if lists.count > 1 {
+                    HStack(spacing: 12) {
+                        ForEach(lists, id: \.name) { argument in
+                            HStack(spacing: 4) {
+                                Text(argument.title).font(.system(size: 12)).foregroundStyle(.secondary)
+                                picker(for: argument)
+                            }
+                        }
+                    }
+                    .padding(.top, 4)
+                }
             }
             Spacer(minLength: 8)
-            if case .pick(let argument) = action.launch, case .choice(let choices) = argument.kind {
-                Picker(argument.title, selection: pickBinding(default: choices.first?.value ?? "")) {
-                    ForEach(choices) { choice in Text(choice.title).tag(choice.value) }
-                }
-                .labelsHidden()
-                .pickerStyle(.menu)
-                .controlSize(.small)
-                .fixedSize()
-            }
+            if lists.count == 1 { picker(for: lists[0]) }
         }
         .padding(8)
         .frame(minHeight: 44)
@@ -181,10 +185,27 @@ private struct ActionRow: View {
         .contentShape(Rectangle())
     }
 
-    private func pickBinding(default value: String) -> Binding<String> {
+    private var lists: [ActionArgument] {
+        if case .pick(let arguments) = action.launch { arguments } else { [] }
+    }
+
+    @ViewBuilder
+    private func picker(for argument: ActionArgument) -> some View {
+        if case .choice(let choices) = argument.kind {
+            Picker(argument.title, selection: pickBinding(for: argument)) {
+                ForEach(choices) { choice in Text(choice.title).tag(choice.value) }
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .controlSize(.small)
+            .fixedSize()
+        }
+    }
+
+    private func pickBinding(for argument: ActionArgument) -> Binding<String> {
         Binding(
-            get: { model.picks[action.id] ?? value },
-            set: { model.picks[action.id] = $0 }
+            get: { model.picks[action.id]?[argument.name] ?? argument.initialChoice ?? "" },
+            set: { model.picks[action.id, default: [:]][argument.name] = $0 }
         )
     }
 }

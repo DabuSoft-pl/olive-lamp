@@ -80,6 +80,7 @@ struct ActionMessage: Decodable {
         var title: String?
         var type: String?
         var choices: [Choice]?
+        var defaultValue: String?
     }
 
     struct Choice: Decodable {
@@ -107,7 +108,9 @@ struct ActionMessage: Decodable {
             guard let value = choice.value else { return nil }
             return ActionArgument.Choice(value: value, title: choice.title.flatMap { $0.isEmpty ? nil : $0 } ?? value)
         }
-        if !choices.isEmpty { return ActionArgument(name: name, title: title, kind: .choice(choices)) }
+        if !choices.isEmpty {
+            return ActionArgument(name: name, title: title, kind: .choice(choices), defaultValue: message.defaultValue.flatMap { $0.isEmpty ? nil : $0 })
+        }
         return ActionArgument(name: name, title: title, kind: .other(message.type ?? ""))
     }
 }

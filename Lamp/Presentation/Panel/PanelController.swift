@@ -61,11 +61,7 @@ final class PanelController {
             openInBrowser()
         case .direct, .pick:
             guard model.run?.execution.isActive != true else { return }
-            let picked: String? = if case .pick(let argument) = action.launch {
-                model.picks[action.id] ?? Self.firstChoice(of: argument)
-            } else {
-                nil
-            }
+            let picked = model.picks[action.id] ?? [:]
             model.clearStartProblem()
             following?.cancel()
             following = Task {
@@ -102,10 +98,5 @@ final class PanelController {
             following = nil
             refresh()
         }
-    }
-
-    static func firstChoice(of argument: ActionArgument) -> String? {
-        if case .choice(let choices) = argument.kind { return choices.first?.value }
-        return nil
     }
 }
