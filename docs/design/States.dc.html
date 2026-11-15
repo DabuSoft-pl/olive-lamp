@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Menu bar states, notifications and icon</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#f2a541}a:hover{color:#ffc06b}
+button{font:inherit}
+</style>
+</helmet>
+<div style="width: 1880px; height: 480px; box-sizing: border-box; background: #1e1f22; font-family: Geist, system-ui, sans-serif; color: #ececea; padding: 40px; display: grid; grid-template-columns: 440px 680px 1fr; gap: 64px">
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <h2 style="margin: 0; font-size: 15px; font-weight: 600">Menu bar</h2>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{states}}" as="s" hint-placeholder-count="4">
+        <div style="display: flex; align-items: center; gap: 16px; height: 48px">
+          <div style="width: 64px; height: 28px; border-radius: 6px; background: #161719; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ececea" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="{{s.label}}"><path d="M8 3h8l2.5 8h-13z"></path><path d="M12 11v7"></path><path d="M8 21h8"></path><circle cx="18.5" cy="18" r="2.6" fill="{{s.dot}}" stroke="none"></circle></svg>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 13px; font-weight: 500">{{s.label}}</span>
+            <span style="font-size: 12px; color: #a6a7ab">{{s.hint}}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <h2 style="margin: 0; font-size: 15px; font-weight: 600">Notifications</h2>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <sc-for list="{{notes}}" as="n" hint-placeholder-count="3">
+        <div style="display: flex; gap: 12px; align-items: center; padding: 12px 16px 12px 12px; border-radius: 16px; background: #2a2b2f; border: 1px solid rgb(255 255 255 / .08)">
+          <svg width="40" height="40" viewBox="0 0 240 240" aria-hidden="true" style="flex-shrink: 0">
+            <rect x="8" y="8" width="224" height="224" rx="52" fill="#1b1c20"></rect>
+            <path d="M88 132 L152 132 L190 206 L50 206 Z" fill="#f2a541" opacity=".28"></path>
+            <path d="M96 70 L144 70 L160 132 L80 132 Z" fill="#d4d4d1"></path>
+          </svg>
+          <div style="display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0">
+            <span style="font-size: 13px; font-weight: 600">{{n.title}}</span>
+            <span style="font-size: 13px; color: #c3c4c8">{{n.body}}</span>
+          </div>
+          <button type="button" style="font-size: 12px; font-weight: 500; padding: 4px 12px; line-height: 20px; border-radius: 6px; border: 0; background: rgb(255 255 255 / .10); color: #ececea; cursor: pointer; white-space: nowrap">{{n.action}}</button>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display: flex; gap: 40px; align-items: center">
+    <svg width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Lamp app icon: a metal desk lamp shining warm light on a small server">
+      <defs>
+        <linearGradient id="lmTile" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2b30"></stop><stop offset="1" stop-color="#141518"></stop></linearGradient>
+        <linearGradient id="lmShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8e8f93"></stop><stop offset=".45" stop-color="#e4e4e1"></stop><stop offset="1" stop-color="#9c9da1"></stop></linearGradient>
+        <linearGradient id="lmCone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffcf86" stop-opacity=".55"></stop><stop offset="1" stop-color="#f2a541" stop-opacity="0"></stop></linearGradient>
+        <radialGradient id="lmPool" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f2a541" stop-opacity=".35"></stop><stop offset="1" stop-color="#f2a541" stop-opacity="0"></stop></radialGradient>
+        <linearGradient id="lmBox" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3b41"></stop><stop offset="1" stop-color="#25262a"></stop></linearGradient>
+      </defs>
+      <rect x="8" y="8" width="224" height="224" rx="52" fill="url(#lmTile)"></rect>
+      <path d="M120 22 L120 66" stroke="#6d6e73" stroke-width="5" stroke-linecap="round"></path>
+      <path d="M86 130 L154 130 L196 214 L44 214 Z" fill="url(#lmCone)"></path>
+      <ellipse cx="120" cy="196" rx="78" ry="16" fill="url(#lmPool)"></ellipse>
+      <path d="M96 66 L144 66 L160 130 L80 130 Z" fill="url(#lmShade)"></path>
+      <ellipse cx="120" cy="130" rx="40" ry="5" fill="#fff1d6"></ellipse>
+      <rect x="76" y="168" width="88" height="30" rx="6" fill="url(#lmBox)"></rect>
+      <path d="M82 168.5 H158" stroke="rgb(255 255 255 / .22)" stroke-width="1"></path>
+      <circle cx="92" cy="183" r="4" fill="#f2a541"></circle>
+      <path d="M106 183 H146" stroke="#55565b" stroke-width="3" stroke-linecap="round"></path>
+    </svg>
+    <div style="display: flex; flex-direction: column; gap: 16px; max-width: 280px">
+      <h2 style="margin: 0; font-size: 15px; font-weight: 600">App icon</h2>
+      <p style="margin: 0; font-size: 13px; color: #a6a7ab; line-height: 1.6">A metal desk lamp throwing warm light on a machine. The amber of the light is the app's only accent. In the menu bar the mark stays a plain template outline, like Tendbar's</p>
+      <div style="display: flex; align-items: flex-end; gap: 16px">
+        <svg width="64" height="64" viewBox="0 0 240 240" aria-hidden="true">
+          <rect x="8" y="8" width="224" height="224" rx="52" fill="#1b1c20"></rect>
+          <path d="M86 130 L154 130 L196 214 L44 214 Z" fill="#f2a541" opacity=".3"></path>
+          <path d="M96 66 L144 66 L160 130 L80 130 Z" fill="#d4d4d1"></path>
+          <rect x="76" y="168" width="88" height="30" rx="6" fill="#33343a"></rect>
+          <circle cx="92" cy="183" r="6" fill="#f2a541"></circle>
+        </svg>
+        <svg width="32" height="32" viewBox="0 0 240 240" aria-hidden="true">
+          <rect x="8" y="8" width="224" height="224" rx="52" fill="#1b1c20"></rect>
+          <path d="M86 130 L154 130 L196 214 L44 214 Z" fill="#f2a541" opacity=".35"></path>
+          <path d="M96 66 L144 66 L160 130 L80 130 Z" fill="#d4d4d1"></path>
+        </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ececea" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8l2.5 8h-13z"></path><path d="M12 11v7"></path><path d="M8 21h8"></path></svg>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1880,"height":480}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      states: [
+        { label: 'All quiet', hint: 'No dot: machines up, nothing running', dot: 'none' },
+        { label: 'Running', hint: 'An action is in progress', dot: '#f2a541' },
+        { label: 'Failed', hint: 'An action failed or a machine is down', dot: '#ef6b5a' },
+        { label: 'Sign in again', hint: 'Session expired or server unreachable', dot: '#a6a7ab' }
+      ],
+      notes: [
+        { title: 'Update finished · dokploy', body: '14 packages upgraded in 3:12', action: 'Show log' },
+        { title: 'Restore test failed', body: 'Exit code 2 after 8:40 · the scratch VM did not boot', action: 'Show log' },
+        { title: 'Homelab: sign in again', body: 'The session expired. Actions are paused until you sign in', action: 'Sign in' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

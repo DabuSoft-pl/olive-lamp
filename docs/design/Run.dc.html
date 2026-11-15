@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Running action log</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#f2a541}a:hover{color:#ffc06b}
+button{font:inherit}
+</style>
+</helmet>
+<div style="width: 520px; height: 800px; box-sizing: border-box; background: #1e1f22; font-family: Geist, system-ui, sans-serif; color: #ececea; padding: 36px 20px 20px; display: flex">
+  <div style="flex: 1; display: flex; flex-direction: column; background: #141518; border: 1px solid rgb(255 255 255 / .08); border-radius: 18px; box-shadow: 0 16px 40px rgb(0 0 0 / .40); overflow: hidden">
+
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px 12px 8px">
+      <a href="Main.dc.html" aria-label="Back to panel" style="width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a6a7ab" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      </a>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 15px; font-weight: 600">Update · dokploy</span>
+        <span style="font-size: 12px; color: #a6a7ab">Package upgrades, no reboot</span>
+      </div>
+      <span style="margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #f2a541">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #f2a541"></span>Running
+      </span>
+    </div>
+
+    <div style="padding: 0 16px 16px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: baseline; justify-content: space-between">
+        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 28px; font-weight: 500; letter-spacing: -0.02em; font-variant-numeric: tabular-nums">1:42</span>
+        <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #85878c">about 1:30 left · last run took 3:10</span>
+      </div>
+      <div style="height: 4px; border-radius: 2px; background: rgb(255 255 255 / .10); overflow: hidden">
+        <div style="width: 54%; height: 4px; border-radius: 2px; background: #f2a541"></div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 12px 16px; border-top: 1px solid rgb(255 255 255 / .08)">
+      <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #a6a7ab">Started</span><span style="font-size: 13px">18:08 by damian</span></div>
+      <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #a6a7ab">Arguments</span><span style="font-size: 13px; font-family: 'JetBrains Mono', ui-monospace, monospace">limit=dokploy</span></div>
+    </div>
+
+    <div style="flex: 1; margin: 0 8px; border-radius: 10px; background: #0f1012; border: 1px solid rgb(255 255 255 / .06); padding: 12px; overflow: hidden; display: flex; flex-direction: column; gap: 4px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 1.5">
+      <sc-for list="{{log}}" as="l" hint-placeholder-count="18">
+        <div style="white-space: pre; overflow: hidden; text-overflow: ellipsis; color: {{l.color}}">{{l.text}}</div>
+      </sc-for>
+      <span style="width: 8px; height: 16px; background: #ececea"></span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #a6a7ab">
+        <input type="checkbox" checked style="margin: 0; accent-color: #f2a541">Notify when done
+      </label>
+      <button type="button" style="margin-left: auto; font-size: 12px; font-weight: 500; padding: 4px 12px; line-height: 20px; border-radius: 6px; border: 0; background: rgb(255 255 255 / .07); color: #ececea; cursor: pointer">Copy log</button>
+      <button type="button" aria-label="Stop: hold to stop the action" style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; padding: 4px 12px; line-height: 20px; border-radius: 6px; border: 0; background: rgb(239 107 90 / .12); color: #ef6b5a; cursor: pointer">
+        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#ef6b5a" stroke-width="2.4" opacity=".4"></circle></svg>Hold to stop
+      </button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":520,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var task = '#85878c', ok = '#8fc46a', changed = '#f2a541', fg = '#c9cacd';
+    return {
+      log: [
+        { text: 'PLAY [dokploy]', color: task },
+        { text: 'TASK [Gathering Facts]', color: task },
+        { text: 'ok: [dokploy]', color: ok },
+        { text: 'TASK [apt : update cache]', color: task },
+        { text: 'changed: [dokploy]', color: changed },
+        { text: 'TASK [apt : list upgradable]', color: task },
+        { text: 'ok: [dokploy] => 14 packages', color: ok },
+        { text: 'TASK [apt : dist-upgrade]', color: task },
+        { text: 'Reading package lists...', color: fg },
+        { text: 'Building dependency tree...', color: fg },
+        { text: 'The following packages will be upgraded:', color: fg },
+        { text: '  containerd.io docker-ce docker-ce-cli libssl3', color: fg },
+        { text: '  linux-image-6.8.12-4-pve openssl tzdata', color: fg },
+        { text: '14 upgraded, 0 newly installed, 0 to remove', color: fg },
+        { text: 'Fetched 182 MB in 21s (8,667 kB/s)', color: fg },
+        { text: 'Preparing to unpack linux-image-6.8.12-4-pve ...', color: fg },
+        { text: 'Unpacking linux-image-6.8.12-4-pve (6.8.12-4) ...', color: fg }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

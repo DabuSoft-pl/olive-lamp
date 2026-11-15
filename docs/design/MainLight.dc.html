@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lamp menu bar panel, light</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9a5806}a:hover{color:#7a4504}
+button{font:inherit}
+</style>
+</helmet>
+<div style="width: 520px; height: 800px">
+  <dc-import name="Main" light="{{ light }}" hint-size="520px,800px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":520,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { light: true };
+  }
+}
+</script>
+</body>
+</html>

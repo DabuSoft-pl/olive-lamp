@@ -1,0 +1,64 @@
+name: Lamp
+options:
+  bundleIdPrefix: pl.dabusoft
+  deploymentTarget:
+    macOS: "26.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    DEVELOPMENT_TEAM: ""
+    ENABLE_HARDENED_RUNTIME: NO
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+  configs:
+    Release:
+      ENABLE_HARDENED_RUNTIME: YES
+packages:
+  LampKit:
+    path: Packages/LampKit
+targets:
+  Lamp:
+    type: application
+    platform: macOS
+    sources:
+      - Lamp
+    info:
+      path: Lamp/Info.plist
+      properties:
+        CFBundleDisplayName: Lamp
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, pl]
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.utilities
+        NSHumanReadableCopyright: "© 2026 Dabusoft. MIT License."
+        # OliveTin often lives at a LAN address or a .local name, over plain HTTP.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSLocalNetworkUsageDescription: Lamp talks to the OliveTin servers you add.
+    settings:
+      base:
+        PRODUCT_NAME: Lamp
+        PRODUCT_BUNDLE_IDENTIFIER: pl.dabusoft.lamp
+        CODE_SIGN_ENTITLEMENTS: Lamp/Lamp.entitlements
+        SWIFT_EMIT_LOC_STRINGS: YES
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    dependencies:
+      - package: LampKit
+        product: LampDomain
+      - package: LampKit
+        product: LampApplication
+      - package: LampKit
+        product: LampInfrastructure
+schemes:
+  Lamp:
+    build:
+      targets:
+        Lamp: all

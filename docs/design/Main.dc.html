@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lamp menu bar panel</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#f2a541}a:hover{color:#ffc06b}
+button{font:inherit}
+</style>
+</helmet>
+<div style="width: 520px; height: 800px; box-sizing: border-box; background: {{t.wall}}; font-family: Geist, system-ui, sans-serif; color: {{t.text}}; position: relative; overflow: hidden">
+  <div style="height: 28px; display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 0 16px; background: {{t.bar}}; font-size: 13px; color: {{t.text}}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.text}}" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12.5a10 10 0 0 1 14 0"></path><path d="M8.5 16a5 5 0 0 1 7 0"></path><circle cx="12" cy="19.5" r="0.8" fill="{{t.text}}"></circle></svg>
+    <div style="display: flex; align-items: center; justify-content: center; width: 32px; height: 22px; border-radius: 6px; background: {{t.barSelected}}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.text}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Lamp: an action is running"><path d="M8 3h8l2.5 8h-13z"></path><path d="M12 11v7"></path><path d="M8 21h8"></path><circle cx="18.5" cy="18" r="2.6" fill="#f2a541" stroke="none"></circle></svg>
+    </div>
+    <span>Sun 15 Nov 18:10</span>
+  </div>
+
+  <div style="position: absolute; top: 36px; right: 20px; width: 380px; box-sizing: border-box; background: {{t.surface}}; border: 1px solid {{t.hairline}}; border-radius: 18px; box-shadow: {{t.shadow}}; display: flex; flex-direction: column; overflow: hidden">
+
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 12px 12px 16px">
+      <button type="button" aria-label="Server: Homelab. Switch server" style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; background: none; border: 0; padding: 0; color: inherit; text-align: left; cursor: pointer">
+        <span style="display: flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 600">Homelab
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{t.text2}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+        </span>
+        <span style="font-size: 12px; color: {{t.text2}}">damian via Tailscale · checked 20 s ago</span>
+      </button>
+      <button type="button" aria-label="Refresh" style="width: 28px; height: 28px; border-radius: 8px; border: 0; background: none; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.text2}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 4v7h-7"></path></svg>
+      </button>
+    </div>
+
+    <div style="margin: 0 8px; padding: 12px; border-radius: 10px; background: {{t.raised}}; border: 1px solid {{t.hairline}}; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #f2a541"></span>
+        <span style="font-size: 13px; font-weight: 500">Update</span>
+        <span style="font-size: 13px; color: {{t.text2}}">dokploy</span>
+        <span style="margin-left: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; font-variant-numeric: tabular-nums">1:42</span>
+      </div>
+      <div style="height: 4px; border-radius: 2px; background: {{t.track}}; overflow: hidden">
+        <div style="width: 54%; height: 4px; border-radius: 2px; background: #f2a541"></div>
+      </div>
+      <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: {{t.muted}}">about 1:30 left · last run took 3:10</div>
+      <div style="display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 6px; background: {{t.inset}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 1.5">
+        <span style="color: {{t.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">TASK [apt : dist-upgrade]</span>
+        <span style="color: {{t.text2}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Unpacking linux-image-6.8.12-4-pve …</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px">
+        <a href="Run.dc.html" style="font-size: 12px; font-weight: 500; text-decoration: none; padding: 4px 12px; line-height: 20px; border-radius: 6px; background: {{t.button}}; color: {{t.text}}">Show log</a>
+        <button type="button" aria-label="Stop: hold to stop the action" style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; padding: 4px 8px; line-height: 20px; border-radius: 6px; border: 0; background: none; color: {{t.bad}}; cursor: pointer">
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="{{t.bad}}" stroke-width="2.4" opacity=".4"></circle></svg>Hold to stop
+        </button>
+      </div>
+    </div>
+
+    <div style="padding: 16px 16px 4px; font-size: 12px; font-weight: 500; color: {{t.text2}}">Machines</div>
+    <div style="display: flex; flex-direction: column; padding: 0 8px">
+      <sc-for list="{{machines}}" as="m" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 4px 0 8px; border-radius: 8px">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: {{m.dot}}; flex-shrink: 0"></span>
+          <span style="font-size: 13px; font-weight: 500; width: 72px">{{m.name}}</span>
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: {{t.muted}}; width: 32px">{{m.kind}}</span>
+          <span style="margin-left: auto; font-size: 12px; color: {{m.noteColor}}; font-variant-numeric: tabular-nums">{{m.note}}</span>
+          <button type="button" aria-label="More for {{m.name}}" style="width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="{{t.text2}}" aria-hidden="true"><circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle></svg>
+          </button>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="height: 1px; background: {{t.hairline}}; margin: 8px 16px"></div>
+
+    <div style="display: flex; align-items: center; gap: 4px; padding: 4px 12px 4px 16px">
+      <span style="font-size: 12px; font-weight: 500; color: {{t.text2}}; margin-right: auto">Actions</span>
+      <button type="button" aria-pressed="true" style="font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0; background: {{t.button}}; color: {{t.text}}">Everyday</button>
+      <button type="button" aria-pressed="false" style="font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0; background: none; color: {{t.text2}}">Backup</button>
+      <button type="button" aria-pressed="false" style="font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0; background: none; color: {{t.text2}}">Setup</button>
+    </div>
+    <div style="display: flex; flex-direction: column; padding: 4px 8px 8px">
+      <button type="button" style="display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; border: 0; background: none; color: inherit; text-align: left; cursor: pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.text2}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4h6v3H9z"></path><path d="m9 13 2 2 4-4"></path></svg>
+        <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px">Check</span><span style="font-size: 12px; color: {{t.text2}}">Read-only: updates, disks, backups</span></span>
+      </button>
+      <button type="button" aria-label="Update all: keep holding to run" style="display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; border: 0; background: {{t.button}}; color: inherit; text-align: left; cursor: pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="{{t.track}}" stroke-width="2.4"></circle><circle cx="12" cy="12" r="9" fill="none" stroke="#f2a541" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="36 57" transform="rotate(-90 12 12)"></circle></svg>
+        <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px">Update all</span><span style="font-size: 12px; color: {{t.accentInk}}">Keep holding</span></span>
+      </button>
+      <button type="button" style="display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; border: 0; background: none; color: inherit; text-align: left; cursor: pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="{{t.text2}}" stroke-width="1.5"></circle></svg>
+        <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px">Prune</span><span style="font-size: 12px; color: {{t.text2}}">Hold to run · removes stopped containers and images</span></span>
+      </button>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 16px; border-top: 1px solid {{t.hairline}}; font-size: 12px">
+      <a href="https://panel.tailnet.ts.net" style="text-decoration: none; color: {{t.accentInk}}">Open in browser</a>
+      <button type="button" aria-label="Settings" style="margin-left: auto; width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.text2}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"></path></svg>
+      </button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"light":{"editor":"boolean","default":false},"$preview":{"width":520,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var light = this.props.light ?? false;
+    var t = light ? {
+      wall: '#d6d5d1', bar: '#ecebe8', barSelected: 'rgb(20 20 18 / .10)',
+      surface: '#fbfbfa', raised: '#f3f3f1', inset: '#eaeae7', button: 'rgb(20 20 18 / .06)', track: 'rgb(20 20 18 / .10)',
+      hairline: 'rgb(20 20 18 / .10)', shadow: '0 12px 32px rgb(20 20 18 / .16)',
+      text: '#18181a', text2: '#55565b', muted: '#6b6c70', accentInk: '#9a5806', ok: '#3f7d2a', bad: '#c4321f', off: '#a3a4a8'
+    } : {
+      wall: '#1e1f22', bar: '#161719', barSelected: 'rgb(255 255 255 / .16)',
+      surface: '#141518', raised: '#1b1c20', inset: '#0f1012', button: 'rgb(255 255 255 / .07)', track: 'rgb(255 255 255 / .10)',
+      hairline: 'rgb(255 255 255 / .08)', shadow: '0 16px 40px rgb(0 0 0 / .40)',
+      text: '#ececea', text2: '#a6a7ab', muted: '#85878c', accentInk: '#f2a541', ok: '#8fc46a', bad: '#ef6b5a', off: '#5d5f64'
+    };
+    return {
+      t: t,
+      machines: [
+        { name: 'pve', kind: 'host', dot: t.ok, note: 'up 41 d', noteColor: t.text2 },
+        { name: 'dokploy', kind: 'VM', dot: '#f2a541', note: 'updating', noteColor: t.accentInk },
+        { name: 'builder', kind: 'VM', dot: t.ok, note: '3 updates', noteColor: t.text },
+        { name: 'panel', kind: 'LXC', dot: t.ok, note: 'up 12 d', noteColor: t.text2 },
+        { name: 'test', kind: 'VM', dot: t.off, note: 'stopped', noteColor: t.muted }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
