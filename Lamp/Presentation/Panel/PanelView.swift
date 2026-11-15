@@ -220,9 +220,9 @@ private struct ProblemBanner: View {
 
 enum SettingsWindow {
     @MainActor
-    static func open(with openSettings: OpenSettingsAction, closing dismiss: DismissAction) {
+    static func open(with openSettings: OpenSettingsAction, closing dismiss: DismissAction? = nil) {
         // The panel steps aside for the window it opened.
-        dismiss()
+        dismiss?()
         NSApp.windows.filter { $0.className.contains("MenuBarExtra") && $0.isVisible }.forEach { $0.close() }
         // The cooperative `activate()` leaves a menu bar app behind the frontmost app, so the window never shows.
         NSApp.activate(ignoringOtherApps: true)

@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Bindable var preferences: Preferences
     @State private var list: [Server] = []
     @State private var adding = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         Form {
@@ -44,6 +45,12 @@ struct SettingsView: View {
         .frame(width: 520)
         .frame(minHeight: 320)
         .onAppear { list = servers.servers }
+        // Esc closes Settings, as it closes the add-server sheet; the sheet takes it first while it is open.
+        .background {
+            Button("Close", action: { dismiss() })
+                .keyboardShortcut(.cancelAction)
+                .hidden()
+        }
         .sheet(isPresented: $adding, onDismiss: { list = servers.servers }) {
             AddServerView(servers: servers)
         }

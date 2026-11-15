@@ -261,6 +261,16 @@
         }
       }
     },
+    "Close" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamknij"
+          }
+        }
+      }
+    },
     "Copy Log" : {
       "localizations" : {
         "pl" : {

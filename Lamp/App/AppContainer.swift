@@ -12,6 +12,7 @@ final class AppContainer {
     let panelActions: PanelController
     let servers: ServersController
     private let notifier = UserNotificationsAdapter()
+    private(set) lazy var statusMenu = StatusItemMenu(panel: panel, actions: panelActions)
     private var timer: Timer?
 
     init(repository: any ServerRepository, credentials: any CredentialStore, gateways: any GatewayMaking, clock: any Clock, preferences: Preferences) {
@@ -41,6 +42,7 @@ final class AppContainer {
 
     /// Reads the server now and every minute, so the menu bar mark stays current while the panel is closed.
     func start() {
+        statusMenu.start()
         panelActions.refresh()
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.panelActions.refresh() }
