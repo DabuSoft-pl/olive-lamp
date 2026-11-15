@@ -243,7 +243,7 @@ enum SettingsWindow {
         // The cooperative `activate()` leaves a menu bar app behind the frontmost app, so the window never shows.
         NSApp.activate(ignoringOtherApps: true)
         openSettings()
-        DispatchQueue.main.async {
+        Task { @MainActor in
             NSApp.windows.first { $0.identifier?.rawValue.contains("Settings") == true }?.makeKeyAndOrderFront(nil)
         }
     }

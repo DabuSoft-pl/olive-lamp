@@ -28,11 +28,11 @@ final class PanelViewModel: OverviewOutput, RunOutput {
     private(set) var run: RunProgress? {
         didSet {
             let output = run?.execution.output ?? ""
-            if output != oldValue?.execution.output { logLines = output.split(separator: "\n", omittingEmptySubsequences: false).map(String.init) }
+            if output != oldValue?.execution.output { logLines = LogLine.all(of: output) }
         }
     }
     /// The followed run's log, split into lines once per change for the log view.
-    private(set) var logLines: [String] = []
+    private(set) var logLines: [LogLine] = []
     private(set) var startProblem: String?
     /// A failure the user has not seen yet; opening the panel clears it.
     private(set) var unseenFailure = false

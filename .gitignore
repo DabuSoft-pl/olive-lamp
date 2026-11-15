@@ -13,3 +13,6 @@ Lamp/Info.plist
 *.key
 .env
 .env.*
+
+# OliveTin writes its sessions into the mounted config folder
+dev/auth/sessions.yaml

@@ -169,3 +169,13 @@ import Testing
         #expect(!info("guest").isSignedIn)
     }
 }
+
+@Suite struct LogLineTests {
+    @Test func tailKeepsLineNumbersAsTheLogGrows() {
+        var run = Execution(id: "r", actionID: "a", actionTitle: "A", output: "PLAY [all] ****\n\nok: [nas]\n")
+        #expect(run.numberedTail(2) == [LogLine(number: 0, text: "PLAY [all]"), LogLine(number: 2, text: "ok: [nas]")])
+        run.output += "changed: [pve]\n"
+        #expect(run.numberedTail(2) == [LogLine(number: 2, text: "ok: [nas]"), LogLine(number: 3, text: "changed: [pve]")])
+        #expect(LogLine.all(of: "a\n\nb").map(\.number) == [0, 1, 2])
+    }
+}

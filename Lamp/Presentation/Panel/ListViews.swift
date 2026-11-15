@@ -38,6 +38,7 @@ struct MachineList: View {
                 Text(type.map(Self.title(of:)) ?? String(localized: "Entities"))
                 Image(systemName: type == nil ? "chevron.right" : "chevron.down")
                     .font(.system(size: 8, weight: .semibold))
+                    .accessibilityHidden(true)
             }
             .font(.system(size: 12, weight: .medium))
             .foregroundStyle(.secondary)

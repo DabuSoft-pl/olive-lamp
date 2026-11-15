@@ -30,12 +30,12 @@ struct RunCard: View {
             Text(RunCaption.of(run, elapsed: elapsed))
                 .font(.system(size: 11, design: .monospaced))
                 .foregroundStyle(.secondary)
-            let tail = execution.tail(2)
-            if !tail.isEmpty {
+            let tail = execution.numberedTail(2)
+            if let last = tail.last {
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(tail.indices, id: \.self) { index in
-                        Text(tail[index])
-                            .foregroundStyle(index == tail.count - 1 ? .secondary : .tertiary)
+                    ForEach(tail) { line in
+                        Text(line.text)
+                            .foregroundStyle(line.number == last.number ? .secondary : .tertiary)
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
@@ -145,17 +145,15 @@ struct RunLogView: View {
 
 /// Ansible-aware colouring, kept to the palette: tasks quiet, `ok` green, `changed` amber, failures red.
 private struct LogText: View {
-    /// Split once per new output by the view model, not on every redraw. A log only grows, so a line's index is its
-    /// identity.
-    let lines: [String]
+    /// Split once per new output by the view model, not on every redraw.
+    let lines: [LogLine]
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 2) {
-                ForEach(lines.indices, id: \.self) { index in
-                    let line = lines[index]
-                    Text(line.isEmpty ? " " : line)
-                        .foregroundStyle(Self.color(of: line))
+                ForEach(lines) { line in
+                    Text(line.text.isEmpty ? " " : line.text)
+                        .foregroundStyle(Self.color(of: line.text))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -194,13 +192,11 @@ private struct RunProgressBar: View {
         }
         Group {
             if let value {
-                GeometryReader { proxy in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(.quaternary)
-                        Capsule().fill(tint).frame(width: proxy.size.width * value)
+                Capsule().fill(.quaternary)
+                    .overlay(alignment: .leading) {
+                        Capsule().fill(tint).scaleEffect(x: value, anchor: .leading)
                     }
-                }
-                .frame(height: 4)
+                    .frame(height: 4)
                 .accessibilityElement()
                 .accessibilityLabel("Progress")
                 .accessibilityValue(Text(value.formatted(.percent.precision(.fractionLength(0)))))

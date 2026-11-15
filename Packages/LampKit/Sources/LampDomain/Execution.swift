@@ -80,18 +80,43 @@ public struct Execution: Identifiable, Equatable, Sendable {
     /// The last lines worth reading at a glance: colour codes gone, filler rules like Ansible's "Task ------ 0.30s"
     /// squeezed to "Task · 0.30s", and lines of nothing but punctuation skipped. The full log stays as it was.
     public func tail(_ count: Int) -> [String] {
-        let lines = output.split(whereSeparator: \.isNewline).compactMap { Self.readable(String($0)) }
+        numberedTail(count).map(\.text)
+    }
+
+    /// The last readable lines, each with its line number in the whole output, which stays the same as the log grows.
+    public func numberedTail(_ count: Int) -> [LogLine] {
+        let lines = output.split(separator: "\n", omittingEmptySubsequences: false).enumerated().compactMap { number, line in
+            Self.readable(String(line)).map { LogLine(number: number, text: $0) }
+        }
         return Array(lines.suffix(count))
     }
 
     static func readable(_ line: String) -> String? {
         var text = line.replacing(/\u{1B}\[[0-9;?]*[A-Za-z]/, with: "")
         text = text.replacing(/\s*[-*=_~.]{4,}\s*/, with: " · ")
-        text = text.trimmingCharacters(in: .whitespaces)
+        // Windows line ends leave a "\r" behind once the output is split on "\n".
+        text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if text.hasPrefix("· ") { text.removeFirst(2) }
         if text.hasSuffix(" ·") { text.removeLast(2) }
         guard text.contains(where: { $0.isLetter || $0.isNumber }) else { return nil }
         return text
+    }
+}
+
+/// One line of a run's output with its place in it: a log only grows, so the number identifies the line.
+public struct LogLine: Identifiable, Equatable, Sendable {
+    public let number: Int
+    public let text: String
+    public var id: Int { number }
+
+    public init(number: Int, text: String) {
+        self.number = number
+        self.text = text
+    }
+
+    /// Every line of `output`, empty ones included, as the full log shows them.
+    public static func all(of output: String) -> [LogLine] {
+        output.split(separator: "\n", omittingEmptySubsequences: false).enumerated().map { LogLine(number: $0, text: String($1)) }
     }
 }
 
