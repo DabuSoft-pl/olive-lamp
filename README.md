@@ -42,7 +42,9 @@ Keychain, and a credential is never sent along a redirect.
 Needs macOS 26 or later.
 
 ```bash
-brew install --cask dabusoft-pl/tap/olive-lamp
+brew tap dabusoft-pl/tap
+brew trust dabusoft-pl/tap   # Homebrew 7 asks before loading casks from other taps
+brew install --cask olive-lamp
 ```
 
 Or download the DMG from [Releases](https://github.com/DabuSoft-pl/olive-lamp/releases) and drag Olive Lamp to
