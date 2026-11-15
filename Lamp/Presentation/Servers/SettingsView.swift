@@ -5,6 +5,7 @@ import SwiftUI
 struct SettingsView: View {
     let servers: ServersController
     @Bindable var preferences: Preferences
+    let launchAtLogin: LaunchAtLogin
     @State private var list: [Server] = []
     @State private var adding = false
     @Environment(\.dismiss) private var dismiss
@@ -40,11 +41,23 @@ struct SettingsView: View {
             Section("Notifications") {
                 Toggle("Tell me when an action I started fails or ends after a long run", isOn: $preferences.notifyWhenDone)
             }
+            Section {
+                Toggle("Open at login", isOn: Binding(get: { launchAtLogin.isOn }, set: { launchAtLogin.set($0) }))
+            } footer: {
+                if launchAtLogin.state == .requiresApproval {
+                    Text("Allow Lamp in System Settings → General → Login Items").foregroundStyle(.secondary)
+                } else if let error = launchAtLogin.error {
+                    Text(error).foregroundStyle(Palette.bad)
+                }
+            }
         }
         .formStyle(.grouped)
         .frame(width: 520)
         .frame(minHeight: 320)
-        .onAppear { list = servers.servers }
+        .onAppear {
+            list = servers.servers
+            launchAtLogin.refresh()
+        }
         // Esc closes Settings, as it closes the add-server sheet; the sheet takes it first while it is open.
         .background {
             Button("Close", action: { dismiss() })

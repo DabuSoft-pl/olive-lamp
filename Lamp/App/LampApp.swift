@@ -23,7 +23,7 @@ struct LampApp: App {
         .menuBarExtraStyle(.window)
 
         Settings {
-            SettingsView(servers: container.servers, preferences: container.preferences)
+            SettingsView(servers: container.servers, preferences: container.preferences, launchAtLogin: container.launchAtLogin)
         }
     }
 }

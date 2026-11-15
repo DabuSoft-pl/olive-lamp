@@ -191,6 +191,16 @@
         }
       }
     },
+    "Allow Lamp in System Settings → General → Login Items" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zezwól na Lamp w Ustawieniach systemowych → Ogólne → Rzeczy otwierane podczas logowania"
+          }
+        }
+      }
+    },
     "Automatic" : {
       "localizations" : {
         "pl" : {
@@ -277,6 +287,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kopiuj log"
+          }
+        }
+      }
+    },
+    "Could not change the login item: %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się zmienić otwierania przy logowaniu: %@"
           }
         }
       }
@@ -497,6 +517,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adres OliveTina"
+          }
+        }
+      }
+    },
+    "Open at login" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwieraj przy logowaniu"
           }
         }
       }

@@ -8,6 +8,7 @@ import LampInfrastructure
 @MainActor
 final class AppContainer {
     let preferences: Preferences
+    let launchAtLogin = LaunchAtLogin()
     let panel = PanelViewModel()
     let panelActions: PanelController
     let servers: ServersController
