@@ -68,7 +68,7 @@ make test-live   # also against the web Lamp's mock: `PORT=8080 node dev/server.
 make build       # xcodegen + xcodebuild (Debug, ad-hoc signed) into build/
 make run         # build and open the app
 make screenshots # README images in docs/images
-make release     # TEAM_ID=ZFG7SZ938C NOTARY_PROFILE=tendbar: notarized DMG, appcast.xml, Sparkle deltas in build/release
+make release     # TEAM_ID=ZFG7SZ938C NOTARY_PROFILE=dabusoft: notarized DMG, appcast.xml, Sparkle deltas in build/release
 ```
 
 Releases go on GitHub Releases (DMG, .sha256, appcast.xml, every .delta); raise MARKETING_VERSION and
