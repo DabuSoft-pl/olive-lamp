@@ -1,0 +1,13 @@
+# Keeps the GitHub Actions in the workflows and the Raycast extension's packages current. Sparkle is pinned in
+# project.yml (XcodeGen), which Dependabot cannot read: check https://github.com/sparkle-project/Sparkle/releases
+# before a release.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: npm
+    directory: /raycast
+    schedule:
+      interval: monthly

@@ -1,0 +1,25 @@
+name: Bug
+description: Something in Olive Lamp does not work as it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what you saw instead.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Olive Lamp (Settings or the right-click menu), OliveTin (under the server's name in Settings) and macOS.
+      placeholder: Olive Lamp 1.0.0, OliveTin 3000.22, macOS 26.2
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: The action or entity in your OliveTin config (optional)
+      description: The part of config.yaml the bug is about. Remove addresses, keys and anything else private first.
+      render: yaml

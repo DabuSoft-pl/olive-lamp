@@ -1,0 +1,56 @@
+name: Test
+
+# Pushes to main and pull requests; changes to documentation only skip it.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+      - "LICENSE"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+      - "LICENSE"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    # The same Xcode as local builds and, later, releases: an older SDK runs the app in compatibility mode on macOS 26+.
+    runs-on: xcode-27
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+      XCODEGEN_VERSION: 2.46.0
+      XCODEGEN_SHA256: 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Xcode
+        run: xcodebuild -version
+      - name: Tests
+        run: make test
+      - name: XcodeGen
+        # A pinned release checked against a hash written here, not whatever Homebrew serves today.
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/xcodegen.zip" \
+            "https://github.com/yonaskolb/XcodeGen/releases/download/$XCODEGEN_VERSION/xcodegen.zip"
+          echo "$XCODEGEN_SHA256  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 --check
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/xcodegen/bin" >> "$GITHUB_PATH"
+      - name: Build the app
+        run: |
+          xcodegen generate --quiet
+          xcodebuild -project OliveLamp.xcodeproj -scheme OliveLamp -configuration Debug -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO -quiet build

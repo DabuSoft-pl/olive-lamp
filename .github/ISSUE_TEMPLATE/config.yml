@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem
+    url: https://github.com/DabuSoft-pl/olive-lamp/security/advisories/new
+    about: Report it privately, not in a public issue.
+  - name: A problem with OliveTin itself
+    url: https://github.com/OliveTin/OliveTin/issues
+    about: Actions that fail on the server, config questions and the web interface belong there.
