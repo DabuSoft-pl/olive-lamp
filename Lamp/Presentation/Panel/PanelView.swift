@@ -9,6 +9,8 @@ struct PanelView: View {
     /// Off only for snapshots: ImageRenderer draws nothing inside a ScrollView.
     var scrolls = true
     @Environment(\.openSettings) private var openSettings
+    /// The menu bar window keeps the last offset, or lands at the bottom; every opening starts at the top.
+    @State private var scroll = ScrollPosition(edge: .top)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -21,7 +23,10 @@ struct PanelView: View {
             }
         }
         .frame(width: 440)
-        .onAppear { actions.panelOpened() }
+        .onAppear {
+            scroll.scrollTo(edge: .top)
+            actions.panelOpened()
+        }
     }
 
     private var header: some View {
@@ -102,8 +107,10 @@ struct PanelView: View {
         }
         if scrolls {
             ScrollView { lists(of: overview) }
+                .scrollPosition($scroll)
+                .defaultScrollAnchor(.top)
                 .scrollBounceBehavior(.basedOnSize)
-                .frame(maxHeight: 680)
+                .frame(maxHeight: Self.listHeight)
         } else {
             lists(of: overview)
         }
@@ -144,6 +151,12 @@ struct PanelView: View {
         .padding(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 12))
         .frame(height: 40)
         .overlay(alignment: .top) { Divider() }
+    }
+
+    /// As tall as the screen allows below the menu bar, leaving room for the header, the footer and a margin.
+    private static var listHeight: CGFloat {
+        let screen = NSScreen.main?.visibleFrame.height ?? 800
+        return max(360, screen - 160)
     }
 
     private var serverName: String {

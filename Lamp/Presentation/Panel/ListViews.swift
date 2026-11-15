@@ -29,7 +29,7 @@ struct MachineList: View {
                             .lineLimit(1)
                     }
                 }
-                .frame(height: 36)
+                .frame(height: 28)
                 .padding(.horizontal, 16)
                 .accessibilityElement(children: .combine)
                 .accessibilityValue(Text(healthText(machine.health)))
