@@ -12,29 +12,40 @@ struct MachineList: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
                 .padding(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-            ForEach(machines) { machine in
-                HStack(spacing: 8) {
-                    Circle().fill(color(machine.health)).frame(width: 8, height: 8)
-                    Text(machine.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
-                        .frame(width: 148, alignment: .leading)
-                    if let kind = machine.kind {
-                        Text(kind).font(.system(size: 11, design: .monospaced)).foregroundStyle(.tertiary)
-                    }
-                    Spacer()
-                    if let note = machine.note {
-                        Text(note)
-                            .font(.system(size: 12))
-                            .monospacedDigit()
-                            .foregroundStyle(noteStyle(machine.health))
-                            .lineLimit(1)
-                    }
+            // Two columns keep a homelab's worth of machines on one screen; a long name ends in "…" and shows in full on hover.
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible())], alignment: .leading, spacing: 0) {
+                ForEach(machines) { machine in
+                    cell(machine)
                 }
-                .frame(height: 28)
-                .padding(.horizontal, 16)
-                .accessibilityElement(children: .combine)
-                .accessibilityValue(Text(healthText(machine.health)))
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func cell(_ machine: Machine) -> some View {
+        HStack(spacing: 8) {
+            Circle().fill(color(machine.health)).frame(width: 8, height: 8)
+            Text(machine.name)
+                .font(.system(size: 13, weight: .medium))
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Spacer(minLength: 4)
+            // A machine that needs you shows why; one that is fine shows what it is.
+            if let note = machine.note {
+                Text(note)
+                    .font(.system(size: 12))
+                    .monospacedDigit()
+                    .foregroundStyle(noteStyle(machine.health))
+                    .lineLimit(1)
+            } else if let kind = machine.kind {
+                Text(kind).font(.system(size: 11, design: .monospaced)).foregroundStyle(.tertiary)
             }
         }
+        .frame(height: 28)
+        .contentShape(Rectangle())
+        .help([machine.name, machine.kind, machine.note].compactMap { $0 }.joined(separator: " · "))
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(Text(healthText(machine.health)))
     }
 
     private func color(_ health: Machine.Health) -> Color {
@@ -138,15 +149,16 @@ private struct ActionRow: View {
                 }
                 .accessibilityLabel(Text("\(action.title), hold to run"))
             } else {
-                Button {
-                    controller.run(action)
-                } label: {
-                    row(icon: AnyView(Image(systemName: action.launch == .inBrowser ? "arrow.up.forward.square" : "play.circle")
-                        .font(.system(size: 14)).foregroundStyle(.secondary).frame(width: 16, height: 16)),
-                        subtitle: action.launch == .inBrowser ? String(localized: "Opens in the browser") : nil, highlight: false)
-                }
-                .buttonStyle(.plain)
-                .disabled(!enabled && action.launch != .inBrowser)
+                // Not a Button: a picker inside a button's label turns into plain text and cannot be opened.
+                row(icon: AnyView(Image(systemName: action.launch == .inBrowser ? "arrow.up.forward.square" : "play.circle")
+                    .font(.system(size: 14)).foregroundStyle(.secondary).frame(width: 16, height: 16)),
+                    subtitle: action.launch == .inBrowser ? String(localized: "Opens in the browser") : nil, highlight: false)
+                    .onTapGesture {
+                        if enabled || action.launch == .inBrowser { controller.run(action) }
+                    }
+                    .accessibilityElement(children: .contain)
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { if enabled || action.launch == .inBrowser { controller.run(action) } }
             }
         }
         .opacity(enabled || action.launch == .inBrowser ? 1 : 0.5)
