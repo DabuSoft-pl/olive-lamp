@@ -84,4 +84,4 @@ logo. The menu bar mark stays a template symbol on purpose.
 
 ## Next
 
-Make the repo public, publish 0.1.0, push the cask. Plan: `~/Projekty/vault/Projekty/Lamp na Maca/`.
+Make the repo public, publish 1.0.0, push the cask. Plan: `~/Projekty/vault/Projekty/Lamp na Maca/`.
