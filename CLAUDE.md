@@ -29,7 +29,7 @@ Domain  <-  Application  <-  Infrastructure
   `JSONServerRepository` (`~/Library/Application Support/Lamp/servers.json`, 0700/0600, never secrets), `SystemClock`.
 - `Lamp/App` — `LampApp`, `AppContainer` (refreshes now and every 60 s), `Snapshot` (Debug only:
   `Lamp.app/Contents/MacOS/Lamp -snapshot <folder>` renders the panel in both appearances to PNG).
-- `Lamp/Platform` — `Preferences` (UserDefaults), `UserNotificationsAdapter`.
+- `Lamp/Platform` — `Preferences` (UserDefaults), `UserNotificationsAdapter`, `StatusItemMenu` (right click on the lamp: refresh, browser, servers, Settings, Quit).
 - `Lamp/Presentation` — `Panel` (view model implements the output ports, controller turns intent into use cases),
   `Servers` (Settings and the add-server sheet), `Shared` (`Palette`, `Clockface`, `HoldRing`, `HoldToRun`, `LampMark`).
 
