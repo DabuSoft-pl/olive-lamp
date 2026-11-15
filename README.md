@@ -39,8 +39,14 @@ Keychain, and a credential is never sent along a redirect.
 
 ## Install
 
-Needs macOS 26 or later. Download the DMG from [Releases](https://github.com/DabuSoft-pl/olive-lamp/releases), drag
-Olive Lamp to Applications and add your OliveTin's address in Settings. Updates arrive through Sparkle.
+Needs macOS 26 or later.
+
+```bash
+brew install --cask dabusoft-pl/tap/olive-lamp
+```
+
+Or download the DMG from [Releases](https://github.com/DabuSoft-pl/olive-lamp/releases) and drag Olive Lamp to
+Applications. Then add your OliveTin's address in Settings. Updates arrive through Sparkle.
 
 ## Build
 
