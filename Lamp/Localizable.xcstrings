@@ -191,12 +191,12 @@
         }
       }
     },
-    "Allow Lamp in System Settings → General → Login Items" : {
+    "Allow Olive Lamp in System Settings → General → Login Items" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zezwól na Lamp w Ustawieniach systemowych → Ogólne → Rzeczy otwierane podczas logowania"
+            "value" : "Zezwól na Olive Lamp w Ustawieniach systemowych → Ogólne → Rzeczy otwierane podczas logowania"
           }
         }
       }
@@ -431,22 +431,22 @@
         }
       }
     },
-    "Lamp" : {
+    "Olive Lamp" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lamp"
+            "value" : "Olive Lamp"
           }
         }
       }
     },
-    "Lamp talks only to this address. Keys and headers stay in your Keychain" : {
+    "Olive Lamp talks only to this address. Keys and headers stay in your Keychain" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lamp łączy się tylko z tym adresem. Klucze i nagłówki zostają w pęku kluczy"
+            "value" : "Olive Lamp łączy się tylko z tym adresem. Klucze i nagłówki zostają w pęku kluczy"
           }
         }
       }
@@ -611,12 +611,12 @@
         }
       }
     },
-    "Quit Lamp" : {
+    "Quit Olive Lamp" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zakończ Lamp"
+            "value" : "Zakończ Olive Lamp"
           }
         }
       }
@@ -811,12 +811,12 @@
         }
       }
     },
-    "The server has not given Lamp a session yet" : {
+    "The server has not given Olive Lamp a session yet" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Serwer nie dał jeszcze Lampie sesji"
+            "value" : "Serwer nie dał jeszcze sesji Olive Lamp"
           }
         }
       }
@@ -841,12 +841,12 @@
         }
       }
     },
-    "The server's own login: a username and password, GitHub, or the proxy in front of it. Lamp keeps the session and asks again when it expires" : {
+    "The server's own login: a username and password, GitHub, or the proxy in front of it. Olive Lamp keeps the session and asks again when it expires" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logowanie samego serwera: login i hasło, GitHub albo proxy przed nim. Lampa zachowuje sesję i poprosi ponownie, gdy wygaśnie"
+            "value" : "Logowanie samego serwera: login i hasło, GitHub albo proxy przed nim. Olive Lamp zachowuje sesję i poprosi ponownie, gdy wygaśnie"
           }
         }
       }

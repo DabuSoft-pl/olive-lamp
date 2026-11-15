@@ -143,7 +143,7 @@ struct PanelView: View {
             Menu {
                 Button("Settings…") { SettingsWindow.open(with: openSettings, closing: dismiss) }
                 Divider()
-                Button("Quit Lamp") { NSApp.terminate(nil) }
+                Button("Quit Olive Lamp") { NSApp.terminate(nil) }
             } label: {
                 Image(systemName: "gearshape").font(.system(size: 13)).frame(width: 28, height: 28)
             }
@@ -169,7 +169,7 @@ struct PanelView: View {
     }
 
     private var serverName: String {
-        model.servers.first { $0.id == model.selectedServer }?.name ?? String(localized: "Lamp")
+        model.servers.first { $0.id == model.selectedServer }?.name ?? String(localized: "Olive Lamp")
     }
 
     private var subtitle: String? {

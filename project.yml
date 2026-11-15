@@ -1,4 +1,4 @@
-name: Lamp
+name: OliveLamp
 options:
   bundleIdPrefix: pl.dabusoft
   deploymentTarget:
@@ -23,7 +23,7 @@ packages:
   LampKit:
     path: Packages/LampKit
 targets:
-  Lamp:
+  OliveLamp:
     type: application
     platform: macOS
     sources:
@@ -31,7 +31,7 @@ targets:
     info:
       path: Lamp/Info.plist
       properties:
-        CFBundleDisplayName: Lamp
+        CFBundleDisplayName: Olive Lamp
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleDevelopmentRegion: en
@@ -42,11 +42,11 @@ targets:
         # OliveTin often lives at a LAN address or a .local name, over plain HTTP.
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
-        NSLocalNetworkUsageDescription: Lamp talks to the OliveTin servers you add.
+        NSLocalNetworkUsageDescription: Olive Lamp talks to the OliveTin servers you add.
     settings:
       base:
-        PRODUCT_NAME: Lamp
-        PRODUCT_BUNDLE_IDENTIFIER: pl.dabusoft.lamp
+        PRODUCT_NAME: Olive Lamp
+        PRODUCT_BUNDLE_IDENTIFIER: pl.dabusoft.olivelamp
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: Lamp/Lamp.entitlements
         SWIFT_EMIT_LOC_STRINGS: YES
@@ -59,7 +59,7 @@ targets:
       - package: LampKit
         product: LampInfrastructure
 schemes:
-  Lamp:
+  OliveLamp:
     build:
       targets:
-        Lamp: all
+        OliveLamp: all

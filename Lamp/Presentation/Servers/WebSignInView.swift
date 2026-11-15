@@ -72,7 +72,7 @@ struct WebSignInView: View {
     private func take(reportingGuest: Bool) async {
         guard !checking else { return }
         guard let credential = SessionCookies.credential(from: await store.httpCookieStore.allCookies(), for: address) else {
-            if reportingGuest { status = String(localized: "The server has not given Lamp a session yet") }
+            if reportingGuest { status = String(localized: "The server has not given Olive Lamp a session yet") }
             return
         }
         checking = true

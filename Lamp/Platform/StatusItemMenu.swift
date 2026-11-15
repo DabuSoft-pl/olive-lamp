@@ -28,7 +28,7 @@ final class StatusItemMenu: NSObject {
         }
     }
 
-    /// Local events only reach this app's windows, so a status bar window here is Lamp's own item.
+    /// Local events only reach this app's windows, so a status bar window here is Olive Lamp's own item.
     private static func isStatusItem(_ window: NSWindow) -> Bool {
         String(describing: type(of: window)).contains("StatusBarWindow")
     }
@@ -54,7 +54,7 @@ final class StatusItemMenu: NSObject {
             menu.addItem(item(String(localized: "Settings…"), action: #selector(settings), key: ","))
             menu.addItem(.separator())
         }
-        menu.addItem(item(String(localized: "Quit Lamp"), action: #selector(quit), key: "q"))
+        menu.addItem(item(String(localized: "Quit Olive Lamp"), action: #selector(quit), key: "q"))
         let y = button.isFlipped ? button.bounds.maxY + 4 : -4
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: y), in: button)
     }

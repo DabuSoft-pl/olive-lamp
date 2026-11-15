@@ -5,7 +5,7 @@ enum LampMark {
     @MainActor
     static func image(for state: PanelViewModel.BarState) -> NSImage {
         let configuration = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
-        guard let symbol = NSImage(systemSymbolName: "lamp.desk", accessibilityDescription: "Lamp")?
+        guard let symbol = NSImage(systemSymbolName: "lamp.desk", accessibilityDescription: "Olive Lamp")?
             .withSymbolConfiguration(configuration) else { return NSImage() }
         let dot: NSColor? = switch state {
         case .quiet: nil
@@ -29,7 +29,7 @@ enum LampMark {
             return true
         }
         image.isTemplate = false
-        image.accessibilityDescription = "Lamp"
+        image.accessibilityDescription = "Olive Lamp"
         return image
     }
 }

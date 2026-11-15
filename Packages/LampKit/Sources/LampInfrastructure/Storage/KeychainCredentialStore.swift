@@ -7,7 +7,7 @@ import Security
 public struct KeychainCredentialStore: CredentialStore {
     private let service: String
 
-    public init(service: String = "pl.dabusoft.lamp.credentials") {
+    public init(service: String = "pl.dabusoft.olivelamp.credentials") {
         self.service = service
     }
 
@@ -31,7 +31,7 @@ public struct KeychainCredentialStore: CredentialStore {
         var add = baseQuery(server)
         add[kSecValueData as String] = data
         add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        add[kSecAttrLabel as String] = "Lamp: OliveTin sign-in"
+        add[kSecAttrLabel as String] = "Olive Lamp: OliveTin sign-in"
         let added = SecItemAdd(add as CFDictionary, nil)
         guard added == errSecSuccess else { throw KeychainError(status: added) }
     }

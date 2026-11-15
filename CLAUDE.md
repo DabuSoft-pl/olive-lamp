@@ -1,10 +1,12 @@
 # CLAUDE.md
 
-Lamp for Mac — a macOS menu bar app for OliveTin: the state of your machines, actions in groups, a running action's
+Olive Lamp — a macOS menu bar app for OliveTin: the state of your machines, actions in groups, a running action's
 log, a notification when it ends. The native sibling of the web Lamp (`~/Projekty/olivetin-lamp`,
 github.com/DabuSoft-pl/olivetin-lamp). Swift 6 (strict concurrency), SwiftUI `MenuBarExtra`, macOS 26+, MIT. UI is
 English with a Polish translation (String Catalog `Lamp/Localizable.xcstrings`); code, commits and docs are English.
-Working name; the repo is local only until the name is settled.
+Bundle `pl.dabusoft.olivelamp`, product "Olive Lamp.app" (XcodeGen target and scheme `OliveLamp`); sources stay in
+`Lamp/` and `Packages/LampKit`. Data: `~/Library/Application Support/Olive Lamp/servers.json`, Keychain service
+`pl.dabusoft.olivelamp.credentials`.
 
 ## Architecture (Clean Architecture, as in Tendbar)
 
@@ -26,9 +28,9 @@ Domain  <-  Application  <-  Infrastructure
   no redirects followed, no cookie store; the credential becomes `Authorization: Bearer`, chosen headers or a `Cookie`
   line), `Wire.swift` (protobuf JSON, lowerCamelCase, defaults omitted, so every field is optional), `OliveTinTime`
   (server-local "2006-01-02 15:04:05", "0001…" means not yet), `HTTPOliveTinGateway`, `KeychainCredentialStore`,
-  `JSONServerRepository` (`~/Library/Application Support/Lamp/servers.json`, 0700/0600, never secrets), `SystemClock`.
+  `JSONServerRepository` (`~/Library/Application Support/Olive Lamp/servers.json`, 0700/0600, never secrets), `SystemClock`.
 - `Lamp/App` — `LampApp`, `AppContainer` (refreshes now and every 60 s), `Snapshot` (Debug only:
-  `Lamp.app/Contents/MacOS/Lamp -snapshot <folder>` renders the panel in both appearances to PNG).
+  `"Olive Lamp.app/Contents/MacOS/Olive Lamp" -snapshot <folder>` renders the panel in both appearances to PNG).
 - `Lamp/Platform` — `Preferences` (UserDefaults), `UserNotificationsAdapter`, `StatusItemMenu` (right click on the lamp: refresh, browser, servers, Settings, Quit).
 - `Lamp/Presentation` — `Panel` (view model implements the output ports, controller turns intent into use cases),
   `Servers` (Settings and the add-server sheet), `Shared` (`Palette`, `Clockface`, `HoldRing`, `HoldToRun`, `LampMark`).

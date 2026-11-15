@@ -2,7 +2,7 @@
 import AppKit
 import SwiftUI
 
-/// `Lamp.app/Contents/MacOS/Lamp -snapshot <folder>` renders the panel in both appearances to PNG files and quits.
+/// `"Olive Lamp.app/Contents/MacOS/Olive Lamp" -snapshot <folder>` renders the panel in both appearances to PNG files and quits.
 /// For checking the design against docs/design without clicking the menu bar; Debug builds only.
 @MainActor
 enum Snapshot {

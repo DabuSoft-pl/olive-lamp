@@ -11,7 +11,7 @@ public struct JSONServerRepository: ServerRepository {
     }
 
     public static func defaultDirectory() -> URL {
-        URL.applicationSupportDirectory.appending(path: "Lamp", directoryHint: .isDirectory)
+        URL.applicationSupportDirectory.appending(path: "Olive Lamp", directoryHint: .isDirectory)
     }
 
     public func load() throws -> [Server] {

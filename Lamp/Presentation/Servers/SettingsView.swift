@@ -50,7 +50,7 @@ struct SettingsView: View {
                 Toggle("Open at login", isOn: Binding(get: { launchAtLogin.isOn }, set: { launchAtLogin.set($0) }))
             } footer: {
                 if launchAtLogin.state == .requiresApproval {
-                    Text("Allow Lamp in System Settings → General → Login Items").foregroundStyle(.secondary)
+                    Text("Allow Olive Lamp in System Settings → General → Login Items").foregroundStyle(.secondary)
                 } else if let error = launchAtLogin.error {
                     Text(error).foregroundStyle(Palette.bad)
                 }
@@ -123,7 +123,7 @@ struct AddServerView: View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Add a Server").font(.system(size: 15, weight: .semibold))
-                Text("Lamp talks only to this address. Keys and headers stay in your Keychain")
+                Text("Olive Lamp talks only to this address. Keys and headers stay in your Keychain")
                     .font(.system(size: 12)).foregroundStyle(.secondary)
             }
             .padding(EdgeInsets(top: 20, leading: 20, bottom: 8, trailing: 20))
@@ -226,7 +226,7 @@ struct AddServerView: View {
         case .headers:
             String(localized: "A JWT, or a service token for Cloudflare Access and similar proxies")
         case .webSession:
-            String(localized: "The server's own login: a username and password, GitHub, or the proxy in front of it. Lamp keeps the session and asks again when it expires")
+            String(localized: "The server's own login: a username and password, GitHub, or the proxy in front of it. Olive Lamp keeps the session and asks again when it expires")
         }
     }
 

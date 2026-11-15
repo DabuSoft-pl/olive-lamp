@@ -1,5 +1,5 @@
 DERIVED := build
-APP := $(DERIVED)/Build/Products/Debug/Lamp.app
+APP := "$(DERIVED)/Build/Products/Debug/Olive Lamp.app"
 
 .PHONY: generate build test test-live run clean
 
@@ -7,7 +7,7 @@ generate:
 	xcodegen generate --quiet
 
 build: generate
-	xcodebuild -project Lamp.xcodeproj -scheme Lamp -configuration Debug -derivedDataPath $(DERIVED) -quiet build
+	xcodebuild -project OliveLamp.xcodeproj -scheme OliveLamp -configuration Debug -derivedDataPath $(DERIVED) -quiet build
 
 test:
 	cd Packages/LampKit && swift test
@@ -20,4 +20,4 @@ run: build
 	open $(APP)
 
 clean:
-	rm -rf $(DERIVED) Lamp.xcodeproj Packages/LampKit/.build
+	rm -rf $(DERIVED) Lamp.xcodeproj OliveLamp.xcodeproj Packages/LampKit/.build
