@@ -22,10 +22,12 @@ run: build
 clean:
 	rm -rf $(DERIVED) Lamp.xcodeproj OliveLamp.xcodeproj Packages/LampKit/.build
 
-# Developer ID signed, notarized DMG with the Sparkle feed and deltas in build/release; scripts/release.sh lists what
-# it needs (TEAM_ID=ZFG7SZ938C NOTARY_PROFILE=dabusoft make release).
+# Developer ID signed, notarized DMG with the Sparkle feed and deltas in build/release (scripts/release.sh lists every
+# variable). The team and the notarytool profile default to Dabusoft's own; override them on the command line.
+TEAM_ID ?= ZFG7SZ938C
+NOTARY_PROFILE ?= dabusoft
 release:
-	scripts/release.sh
+	TEAM_ID="$(TEAM_ID)" NOTARY_PROFILE="$(NOTARY_PROFILE)" scripts/release.sh
 
 # The README images, rendered from made-up data (Lamp/App/Screenshots.swift).
 screenshots: build
