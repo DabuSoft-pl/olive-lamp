@@ -1,7 +1,7 @@
 import Foundation
 
 /// A machine the dashboard shows, read from an OliveTin entity. The field names follow the web Lamp's convention
-/// (`state`, `meta` or `label`, `kind`), so the same status playbook feeds both.
+/// (`state`, `meta`, `summary` or `label`, `kind`), so the same status playbook feeds both.
 public struct Machine: Identifiable, Equatable, Sendable {
     public let id: String
     public var name: String
@@ -23,14 +23,17 @@ public struct Machine: Identifiable, Equatable, Sendable {
     }
 
     public init(key: String, title: String, fields: [String: String]) {
-        let note = [fields["meta"], fields["label"]]
+        let health = Self.health(from: fields["state"])
+        // A machine that is fine needs no sentence; one that is not gets the playbook's `summary` before its badge.
+        let candidates = health == .ok ? [fields["meta"]] : [fields["meta"], fields["summary"], fields["label"]]
+        let note = candidates
             .compactMap { $0?.trimmingCharacters(in: .whitespaces) }
             .first { !$0.isEmpty && $0.lowercased() != "ok" }
         self.init(
             id: key,
             name: fields["name"].flatMap { $0.isEmpty ? nil : $0 } ?? title,
             kind: fields["kind"].flatMap { $0.isEmpty ? nil : $0 },
-            health: Self.health(from: fields["state"]),
+            health: health,
             note: note
         )
     }

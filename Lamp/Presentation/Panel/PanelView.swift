@@ -47,7 +47,7 @@ struct PanelView: View {
                         Image(systemName: "chevron.down").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
                     }
                     if let subtitle {
-                        Text(subtitle).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+                        Text(subtitle).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                     }
                 }
                 .contentShape(Rectangle())
@@ -55,7 +55,7 @@ struct PanelView: View {
             .menuStyle(.button)
             .buttonStyle(.plain)
             .menuIndicator(.hidden)
-            .fixedSize()
+            .fixedSize(horizontal: false, vertical: true)
             .accessibilityLabel(Text("Server: \(serverName)"))
             Spacer()
             Button {

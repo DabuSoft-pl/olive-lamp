@@ -111,6 +111,8 @@ import Testing
         #expect(machine.health == .unknown)
         #expect(machine.name == "media")
         #expect(Machine(key: "k", title: "t", fields: ["state": "DOWN"]).health == .failing)
+        #expect(Machine(key: "k", title: "t", fields: ["state": "warn", "meta": "", "summary": "2 aktualizacje", "label": "UWAGA"]).note == "2 aktualizacje")
+        #expect(Machine(key: "k", title: "t", fields: ["state": "ok", "summary": "wszystko w porządku"]).note == nil)
         #expect(Machine(key: "k", title: "t", fields: ["state": "stopped"]).health == .off)
     }
 
