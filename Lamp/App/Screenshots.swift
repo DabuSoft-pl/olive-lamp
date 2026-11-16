@@ -62,8 +62,8 @@ private final class DemoServers: ServerRepository, @unchecked Sendable {
 }
 
 private final class DemoCredentials: CredentialStore, @unchecked Sendable {
-    func credential(for server: UUID) throws -> Credential? { nil }
-    func store(_ credential: Credential, for server: UUID) throws {}
+    func credential(for server: UUID) throws -> StoredCredential? { nil }
+    func store(_ credential: Credential, origin: String, for server: UUID) throws {}
     func remove(for server: UUID) throws {}
 }
 

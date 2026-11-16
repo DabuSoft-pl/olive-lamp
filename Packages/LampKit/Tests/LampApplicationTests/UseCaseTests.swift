@@ -65,9 +65,12 @@ final class FakeGateways: GatewayMaking, @unchecked Sendable {
     let gateway: FakeGateway
     /// Every address a gateway was made for, in order.
     var addresses: [URL] = []
+    /// The credential each gateway was made with, in order.
+    var credentials: [Credential?] = []
     init(gateway: FakeGateway) { self.gateway = gateway }
     func gateway(address: URL, credential: Credential?) -> any OliveTinGateway {
         addresses.append(address)
+        credentials.append(credential)
         return gateway
     }
 }
@@ -79,10 +82,12 @@ final class MemoryServers: ServerRepository, @unchecked Sendable {
 }
 
 final class MemoryCredentials: CredentialStore, @unchecked Sendable {
-    var items: [UUID: Credential] = [:]
-    func credential(for server: UUID) throws -> Credential? { items[server] }
-    func store(_ credential: Credential, for server: UUID) throws { items[server] = credential }
-    func remove(for server: UUID) throws { items[server] = nil }
+    var stored: [UUID: StoredCredential] = [:]
+    /// The credentials alone, as most tests only care what is kept.
+    var items: [UUID: Credential] { stored.mapValues(\.credential) }
+    func credential(for server: UUID) throws -> StoredCredential? { stored[server] }
+    func store(_ credential: Credential, origin: String, for server: UUID) throws { stored[server] = StoredCredential(credential, origin: origin) }
+    func remove(for server: UUID) throws { stored[server] = nil }
 }
 
 struct InstantClock: Clock {
@@ -347,10 +352,47 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
     @Test func removingAServerDropsItsSecret() throws {
         let directory = directory()
         let id = try #require(directory.selected?.id)
-        credentials.items[id] = .apiKey("k")
+        credentials.stored[id] = StoredCredential(.apiKey("k"), origin: nil)
         try directory.remove(id)
         #expect(credentials.items[id] == nil)
         #expect(directory.selected == nil)
+    }
+
+    @Test func aSecretGoesOnlyToTheOriginItWasGivenFor() throws {
+        let gateways = FakeGateways(gateway: gateway)
+        servers.servers = [home]
+        try ServerDirectory(repository: servers, credentials: credentials, gateways: gateways)
+            .updateCredential(.apiKey("secret"), for: home)
+        #expect(credentials.stored[home.id]?.origin == "https://panel.example.ts.net:443")
+
+        var moved = home
+        moved.address = URL(string: "https://attacker.example")!
+        servers.servers = [moved]  // servers.json edited outside Lamp
+        let directory = ServerDirectory(repository: servers, credentials: credentials, gateways: gateways)
+        _ = directory.gateway(for: moved)
+        #expect(gateways.credentials.last == .some(nil))
+
+        try directory.updateCredential(.apiKey("signed in again"), for: moved)
+        _ = directory.gateway(for: moved)
+        #expect(gateways.credentials.last == .apiKey("signed in again"))
+    }
+
+    @Test func aSecretSavedBeforeOriginsIsBoundOnFirstUse() {
+        let gateways = FakeGateways(gateway: gateway)
+        servers.servers = [home]
+        credentials.stored[home.id] = StoredCredential(.apiKey("old"), origin: nil)
+        let directory = ServerDirectory(repository: servers, credentials: credentials, gateways: gateways)
+
+        _ = directory.gateway(for: home)
+
+        #expect(gateways.credentials.last == .apiKey("old"))
+        #expect(credentials.stored[home.id]?.origin == home.address.origin)
+    }
+
+    @Test func anOriginKeepsSchemeHostAndPort() {
+        #expect(URL(string: "HTTPS://Panel.Example.com/olivetin/")!.origin == "https://panel.example.com:443")
+        #expect(URL(string: "http://nas.local:1337")!.origin == "http://nas.local:1337")
+        #expect(URL(string: "http://nas.local")!.origin != URL(string: "https://nas.local")!.origin)
     }
 }
 

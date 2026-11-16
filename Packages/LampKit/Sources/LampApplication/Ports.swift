@@ -41,11 +41,23 @@ public protocol ServerRepository: Sendable {
     func save(_ servers: [Server]) throws
 }
 
-/// Keeps API keys, headers and session cookies. Only the Keychain implements it for real.
+/// Keeps API keys, headers and session cookies, each with the origin it was given for. Only the Keychain implements it
+/// for real.
 public protocol CredentialStore: Sendable {
-    func credential(for server: UUID) throws -> Credential?
-    func store(_ credential: Credential, for server: UUID) throws
+    func credential(for server: UUID) throws -> StoredCredential?
+    func store(_ credential: Credential, origin: String, for server: UUID) throws
     func remove(for server: UUID) throws
+}
+
+/// A credential and the origin (`URL.origin`) of the address it was given for; nil when saved before 1.0.3.
+public struct StoredCredential: Equatable, Sendable {
+    public var credential: Credential
+    public var origin: String?
+
+    public init(_ credential: Credential, origin: String?) {
+        self.credential = credential
+        self.origin = origin
+    }
 }
 
 public protocol Clock: Sendable {

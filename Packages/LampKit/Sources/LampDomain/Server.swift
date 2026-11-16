@@ -47,6 +47,13 @@ public extension URL {
         let host = (host() ?? "").lowercased()
         return !["localhost", "127.0.0.1", "::1", "[::1]"].contains(host)
     }
+
+    /// Scheme, host and port, as a browser tells sites apart: `https://panel.example.com:443`.
+    var origin: String {
+        let scheme = (scheme ?? "").lowercased()
+        let port = port ?? (scheme == "https" ? 443 : scheme == "http" ? 80 : 0)
+        return "\(scheme)://\((host() ?? "").lowercased()):\(port)"
+    }
 }
 
 /// What the app keeps in the Keychain for a server.

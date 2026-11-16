@@ -26,7 +26,19 @@ public final class ServerDirectory {
     }
 
     public func gateway(for server: Server) -> any OliveTinGateway {
-        gateways.gateway(address: server.address, credential: try? credentials.credential(for: server.id))
+        gateways.gateway(address: server.address, credential: credential(for: server))
+    }
+
+    /// The saved credential, only while the server's address has the origin it was given for. `servers.json` is a plain
+    /// file, so an address changed outside Lamp gets no secret until the user signs in to it again.
+    private func credential(for server: Server) -> Credential? {
+        guard let stored = try? credentials.credential(for: server.id) else { return nil }
+        guard let origin = stored.origin else {
+            // Saved before origins were kept: bound to the address it is used with now.
+            try? credentials.store(stored.credential, origin: server.address.origin, for: server.id)
+            return stored.credential
+        }
+        return origin == server.address.origin ? stored.credential : nil
     }
 
     /// A gateway to an address that is not saved yet, for probing it.
@@ -35,11 +47,7 @@ public final class ServerDirectory {
     }
 
     public func add(_ server: Server, credential: Credential?) throws {
-        if let credential {
-            try credentials.store(credential, for: server.id)
-        } else {
-            try credentials.remove(for: server.id)
-        }
+        try updateCredential(credential, for: server)
         servers.append(server)
         try repository.save(servers)
         selectedID = server.id
@@ -47,7 +55,7 @@ public final class ServerDirectory {
 
     public func updateCredential(_ credential: Credential?, for server: Server) throws {
         if let credential {
-            try credentials.store(credential, for: server.id)
+            try credentials.store(credential, origin: server.address.origin, for: server.id)
         } else {
             try credentials.remove(for: server.id)
         }
