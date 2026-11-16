@@ -1200,6 +1200,46 @@
           }
         }
       }
+    },
+    "Links from other apps" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linki z innych aplikacji"
+          }
+        }
+      }
+    },
+    "Reset Link Token" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zresetuj token linków"
+          }
+        }
+      }
+    },
+    "Links with the old token no longer run anything" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linki ze starym tokenem nic już nie uruchomią"
+          }
+        }
+      }
+    },
+    "Raycast runs actions through links that carry a token only your apps can read. Reset it if a link was copied somewhere else" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raycast uruchamia akcje przez linki z tokenem, który mogą odczytać tylko Twoje aplikacje. Zresetuj go, jeśli link trafił gdzieś indziej"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

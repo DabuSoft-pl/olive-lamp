@@ -229,5 +229,24 @@ struct MockServerTests {
         #expect(record.actions?.first?.hold == true)
         #expect(record.actions?.first?.arguments.first?.initial == "nas")
         #expect(JSONActionCatalog(directory: directory).token == catalog.token)
+
+        // A wider mode set by someone else does not survive the next write.
+        try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: file.path)
+        try catalog.clear()
+        #expect(try FileManager.default.attributesOfItem(atPath: file.path)[.posixPermissions] as? Int == 0o600)
+        let cleared = try JSONDecoder().decode(JSONActionCatalog.Record.self, from: Data(contentsOf: file))
+        #expect(cleared.server == nil && cleared.actions == nil && cleared.token == catalog.token)
+    }
+
+    @Test func aResetTokenReplacesTheOldOne() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "lamp-catalog-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let catalog = JSONActionCatalog(directory: directory)
+        let old = catalog.token
+
+        try catalog.resetToken()
+
+        #expect(catalog.token != old && catalog.token.count == 64)
+        #expect(JSONActionCatalog(directory: directory).token == catalog.token)
     }
 }

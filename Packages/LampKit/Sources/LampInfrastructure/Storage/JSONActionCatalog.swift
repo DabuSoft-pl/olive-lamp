@@ -2,31 +2,47 @@ import Foundation
 import LampApplication
 import LampDomain
 import Security
+import Synchronization
 
 /// `actions.json` next to `servers.json`: the actions of the server the panel shows, for the Raycast extension, and the
 /// token that `olivelamp://run` links need. Only the user can read it (0600); it holds no OliveTin secret.
-public final class JSONActionCatalog: ActionCatalog, @unchecked Sendable {
+public final class JSONActionCatalog: ActionCatalog, Sendable {
     private let file: URL
-    public let token: String
+    private let current: Mutex<String>
+
+    public var token: String { current.withLock { $0 } }
 
     public init(directory: URL) {
         file = directory.appending(path: "actions.json")
         // The token outlives a launch, so a Raycast command keeps working; a missing or broken file gets a new one.
         if let data = try? Data(contentsOf: file), let record = try? JSONDecoder().decode(Record.self, from: data),
            record.token.count >= 32 {
-            token = record.token
+            current = Mutex(record.token)
         } else {
-            token = Self.newToken()
+            current = Mutex(Self.newToken())
         }
     }
 
     public func publish(_ overview: Overview) throws {
-        let record = Record(
+        try write(Record(
             version: 1,
             token: token,
             server: .init(id: overview.server.id, name: overview.server.name, address: overview.server.address),
             actions: overview.actions.filter(\.canRun).map(Record.Entry.init)
-        )
+        ))
+    }
+
+    public func clear() throws {
+        try write(Record(version: 1, token: token, server: nil, actions: nil))
+    }
+
+    public func resetToken() throws {
+        let token = Self.newToken()
+        try write(Record(version: 1, token: token, server: nil, actions: nil))
+        current.withLock { $0 = token }
+    }
+
+    private func write(_ record: Record) throws {
         let directory = file.deletingLastPathComponent()
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         let encoder = JSONEncoder()
@@ -40,6 +56,8 @@ public final class JSONActionCatalog: ActionCatalog, @unchecked Sendable {
         do {
             try data.write(to: temporary)
             _ = try FileManager.default.replaceItemAt(file, withItemAt: temporary)
+            // replaceItemAt keeps the old file's mode; the token is private whatever it was.
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
         } catch {
             try? FileManager.default.removeItem(at: temporary)
             throw error

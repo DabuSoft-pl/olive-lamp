@@ -95,4 +95,8 @@ public struct RunRequest: Equatable, Sendable {
 public protocol ActionCatalog: Sendable {
     var token: String { get }
     func publish(_ overview: Overview) throws
+    /// Lists no server and no actions; the token stays.
+    func clear() throws
+    /// A new token, and no server or actions listed until the next publish.
+    func resetToken() throws
 }

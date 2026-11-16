@@ -9,15 +9,25 @@ final class ServersController {
     private let probe: ProbeServer
     private let addServer: AddServer
     private let signInAgain: SignInAgain
+    private let removeServer: RemoveServer
+    private let resetToken: ResetLinkToken?
     private let panel: PanelController
 
-    init(directory: ServerDirectory, probe: ProbeServer, addServer: AddServer, signInAgain: SignInAgain, panel: PanelController) {
+    init(
+        directory: ServerDirectory, probe: ProbeServer, addServer: AddServer, signInAgain: SignInAgain,
+        removeServer: RemoveServer, resetLinkToken: ResetLinkToken?, panel: PanelController
+    ) {
         self.directory = directory
         self.probe = probe
         self.addServer = addServer
         self.signInAgain = signInAgain
+        self.removeServer = removeServer
+        resetToken = resetLinkToken
         self.panel = panel
     }
+
+    /// Links from other programs are on (not in a snapshot run).
+    var hasLinks: Bool { resetToken != nil }
 
     var servers: [Server] { directory.servers }
 
@@ -36,8 +46,14 @@ final class ServersController {
     }
 
     func remove(_ server: Server) {
-        try? directory.remove(server.id)
+        try? removeServer(server.id)
         panel.serversChanged()
+    }
+
+    /// Links that carry the old token stop working; Raycast reads the new one once the panel has read its server.
+    func resetLinkToken() throws {
+        try resetToken?()
+        panel.refresh()
     }
 
     /// "panel.example.ts.net" becomes "https://panel.example.ts.net"; anything that is not a web address is nil.

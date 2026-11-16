@@ -13,8 +13,8 @@ final class PanelController {
     private let chooseEntities: ChooseEntities
     private let loadMachineActions: LoadMachineActions
     private let preferences: Preferences
-    /// The token `olivelamp://run` links must carry; nil turns links off.
-    private let linkToken: String?
+    /// Holds the token `olivelamp://run` links must carry; nil turns links off.
+    private let catalog: (any ActionCatalog)?
     private var refreshing: Task<Void, Never>?
     /// Counts refreshes, so one that was superseded does not clear its successor.
     private var refreshCount = 0
@@ -24,9 +24,9 @@ final class PanelController {
         model: PanelViewModel, directory: ServerDirectory, refreshOverview: RefreshOverview, runAction: RunAction,
         stopRun: StopRun, chooseEntities: ChooseEntities, loadMachineActions: LoadMachineActions,
         preferences: Preferences,
-        linkToken: String? = nil
+        catalog: (any ActionCatalog)? = nil
     ) {
-        self.linkToken = linkToken
+        self.catalog = catalog
         self.model = model
         self.directory = directory
         self.refreshOverview = refreshOverview
@@ -119,7 +119,7 @@ final class PanelController {
 
     /// Runs an action from an `olivelamp://run` link, on a fresh read of its server, by the same rules as the panel.
     func open(_ url: URL) {
-        guard let linkToken, let request = RunRequest(url: url) else { return }
+        guard let linkToken = catalog?.token, let request = RunRequest(url: url) else { return }
         do throws(RunRequest.Problem) {
             try request.check(token: linkToken)
         } catch {

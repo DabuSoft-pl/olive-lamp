@@ -35,11 +35,14 @@ final class AppContainer {
             chooseEntities: ChooseEntities(directory: directory),
             loadMachineActions: LoadMachineActions(directory: directory),
             preferences: preferences,
-            linkToken: catalog?.token
+            catalog: catalog
         )
         servers = ServersController(
             directory: directory, probe: probe, addServer: AddServer(directory: directory, probe: probe),
-            signInAgain: SignInAgain(directory: directory, probe: probe), panel: panelActions
+            signInAgain: SignInAgain(directory: directory, probe: probe),
+            removeServer: RemoveServer(directory: directory, catalog: catalog),
+            resetLinkToken: catalog.map { ResetLinkToken(catalog: $0) },
+            panel: panelActions
         )
     }
 

@@ -75,6 +75,14 @@ final class FakeGateways: GatewayMaking, @unchecked Sendable {
     }
 }
 
+final class MemoryCatalog: ActionCatalog, @unchecked Sendable {
+    var token = "t"
+    var listed: Overview?
+    func publish(_ overview: Overview) throws { listed = overview }
+    func clear() throws { listed = nil }
+    func resetToken() throws { token += "'"; listed = nil }
+}
+
 final class MemoryServers: ServerRepository, @unchecked Sendable {
     var servers: [Server] = []
     func load() throws -> [Server] { servers }
@@ -356,6 +364,18 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         try directory.remove(id)
         #expect(credentials.items[id] == nil)
         #expect(directory.selected == nil)
+    }
+
+    @Test func removingAServerStopsListingItsActions() async throws {
+        let directory = twoServers()
+        let catalog = MemoryCatalog()
+        await RefreshOverview(directory: directory, clock: InstantClock(), output: recorder, catalog: catalog)()
+        #expect(catalog.listed?.server.id == home.id)
+
+        try RemoveServer(directory: directory, catalog: catalog)(home.id)
+
+        #expect(catalog.listed == nil)
+        #expect(directory.servers.map(\.id) == [office.id])
     }
 
     @Test func aSecretGoesOnlyToTheOriginItWasGivenFor() throws {

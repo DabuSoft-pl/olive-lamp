@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var list: [Server] = []
     @State private var adding = false
     @State private var signingIn: Server?
+    @State private var tokenReset: String?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -42,6 +43,25 @@ struct SettingsView: View {
                 HStack {
                     Spacer()
                     Button("Add Server…") { adding = true }
+                }
+            }
+            if servers.hasLinks {
+                Section {
+                    HStack {
+                        Text("Links from other apps")
+                        Spacer()
+                        Button("Reset Link Token") {
+                            do {
+                                try servers.resetLinkToken()
+                                tokenReset = String(localized: "Links with the old token no longer run anything")
+                            } catch {
+                                tokenReset = error.localizedDescription
+                            }
+                        }
+                    }
+                } footer: {
+                    Text(tokenReset ?? String(localized: "Raycast runs actions through links that carry a token only your apps can read. Reset it if a link was copied somewhere else"))
+                        .foregroundStyle(.secondary)
                 }
             }
             Section("Notifications") {
