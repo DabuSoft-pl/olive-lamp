@@ -44,6 +44,21 @@ public struct Action: Identifiable, Equatable, Sendable {
 
     /// The arguments to send: the user's picks by argument name (else the list's default), and "1" for the
     /// confirmation (it guards against accidents, not access).
+    /// This action run for one machine: the first list that offers the machine by name is set to it and no longer
+    /// asked. nil when no list offers it.
+    public func aimed(at machine: Machine) -> Action? {
+        for argument in arguments where presets[argument.name] == nil {
+            guard case .choice(let choices) = argument.kind,
+                  let choice = choices.first(where: { $0.value.caseInsensitiveCompare(machine.name) == .orderedSame
+                      || $0.title.caseInsensitiveCompare(machine.name) == .orderedSame })
+            else { continue }
+            var aimed = self
+            aimed.presets[argument.name] = choice.value
+            return aimed
+        }
+        return nil
+    }
+
     public func startArguments(picked: [String: String] = [:]) -> [String: String] {
         var values = presets
         for argument in arguments where presets[argument.name] == nil {

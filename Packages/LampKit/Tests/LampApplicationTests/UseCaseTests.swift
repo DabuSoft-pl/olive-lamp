@@ -28,8 +28,10 @@ final class FakeGateway: OliveTinGateway, @unchecked Sendable {
 
     func entityTypes() async throws -> [String] { types }
 
+    var related: [Action]?
+
     func relatedActions(entityType: String, key: String) async throws -> [Action] {
-        [Action(id: "start-\(key)", title: "Start \(key)"), Action(id: "hidden", title: "Hidden", canRun: false)]
+        related ?? [Action(id: "start-\(key)", title: "Start \(key)"), Action(id: "hidden", title: "Hidden", canRun: false)]
     }
 
     func machines(entityType: String) async throws -> [Machine] {
@@ -230,6 +232,17 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
     @Test func machineActionsAreTheRunnableOnes() async throws {
         let actions = try await LoadMachineActions(directory: directory())(Machine(id: "nas", name: "nas"), entityType: "machine")
         #expect(actions.map(\.id) == ["start-nas"])
+    }
+
+    @Test func withoutBoundActionsTheListsThatOfferTheMachineStandIn() async throws {
+        let host = ActionArgument(name: "limit", title: "Machine", kind: .choice(["all", "pve"].map { .init(value: $0, title: $0) }))
+        let offered = [Action(id: "update", title: "Update", arguments: [host]), Action(id: "wake", title: "Wake")]
+        gateway.related = []
+        let actions = try await LoadMachineActions(directory: directory())(
+            Machine(id: "0", name: "pve"), entityType: "machine", offered: offered
+        )
+        #expect(actions.map(\.id) == ["update"])
+        #expect(actions.first?.startArguments() == ["limit": "pve"])
     }
 
     @Test func guestOnALockedServerMustSignIn() async {

@@ -90,10 +90,11 @@ final class PanelController {
         refresh()
     }
 
-    /// The actions OliveTin offers for one machine; nil when the server could not be read.
+    /// The actions OliveTin binds to one machine, else the panel's actions set to it; nil when the server could not be
+    /// read.
     func actions(of machine: Machine) async -> [Action]? {
         guard let type = model.overview?.entityType else { return [] }
-        return try? await loadMachineActions(machine, entityType: type)
+        return try? await loadMachineActions(machine, entityType: type, offered: model.overview?.actions ?? [])
     }
 
     /// Runs an action from an `olivelamp://run` link, on a fresh read of its server, by the same rules as the panel.

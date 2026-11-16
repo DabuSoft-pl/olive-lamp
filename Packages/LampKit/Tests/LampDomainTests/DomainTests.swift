@@ -181,6 +181,18 @@ import Testing
     }
 }
 
+@Suite struct AimTests {
+    @Test func aListThatOffersTheMachineIsSetToIt() {
+        let host = ActionArgument(name: "host", title: "Host", kind: .choice([.init(value: "all", title: "every one"), .init(value: "PVE", title: "Proxmox")]))
+        let mode = ActionArgument(name: "mode", title: "Mode", kind: .choice([.init(value: "cold", title: "cold"), .init(value: "reboot", title: "reboot")]))
+        let restart = Action(id: "r", title: "Restart", arguments: [mode, host])
+        let aimed = restart.aimed(at: Machine(id: "0", name: "pve"))
+        #expect(aimed?.presets == ["host": "PVE"])
+        #expect(aimed?.launch == .pick([mode]))
+        #expect(restart.aimed(at: Machine(id: "1", name: "nas")) == nil)
+    }
+}
+
 @Suite struct LogLineTests {
     @Test func tailKeepsLineNumbersAsTheLogGrows() {
         var run = Execution(id: "r", actionID: "a", actionTitle: "A", output: "PLAY [all] ****\n\nok: [nas]\n")
