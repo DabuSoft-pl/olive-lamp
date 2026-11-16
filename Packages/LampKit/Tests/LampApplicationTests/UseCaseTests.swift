@@ -444,6 +444,28 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
     @Test func noCookiesNoCredential() {
         #expect(SessionCookies.credential(from: [cookie("a", domain: "other.org")], for: URL(string: "https://panel.example.com")!) == nil)
     }
+
+    @Test func aParentHostsOwnCookieAndAnotherPathStayBehind() {
+        func cookie(_ name: String, domain: String, path: String) -> HTTPCookie {
+            HTTPCookie(properties: [.name: name, .value: "v-\(name)", .domain: domain, .path: path])!
+        }
+        let cookies = [
+            cookie("parent-only", domain: "example.com", path: "/"),  // no Domain attribute: example.com alone
+            cookie("sid", domain: "panel.example.com", path: "/olivetin"),
+            cookie("other-app", domain: "panel.example.com", path: "/grafana"),
+            cookie("prefix-trap", domain: "panel.example.com", path: "/olive"),
+        ]
+        let credential = SessionCookies.credential(from: cookies, for: URL(string: "https://panel.example.com/olivetin/")!)
+        #expect(credential == .cookies(["sid": "v-sid"]))
+    }
+
+    @Test func theMoreSpecificOfTwoNamesakesWins() {
+        let wide = HTTPCookie(properties: [.name: "sid", .value: "wide", .domain: ".example.com", .path: "/"])!
+        let own = HTTPCookie(properties: [.name: "sid", .value: "own", .domain: "panel.example.com", .path: "/"])!
+        for cookies in [[wide, own], [own, wide]] {
+            #expect(SessionCookies.credential(from: cookies, for: URL(string: "https://panel.example.com")!) == .cookies(["sid": "own"]))
+        }
+    }
 }
 
 @Suite struct RunRequestTests {
