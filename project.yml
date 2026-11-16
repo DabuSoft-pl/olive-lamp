@@ -25,7 +25,8 @@ packages:
   # Updates: besides the user's own OliveTin servers, the only network use of the app, and it can be turned off.
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
-    exactVersion: 2.10.1
+    # The commit of tag 2.10.1, so a moved tag cannot change what ships or what signs releases (sign_update).
+    revision: ab7d71291238df6e0492143b120c9b696a35f603
 targets:
   OliveLamp:
     type: application
