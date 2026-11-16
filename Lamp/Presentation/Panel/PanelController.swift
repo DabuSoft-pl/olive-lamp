@@ -16,6 +16,8 @@ final class PanelController {
     /// The token `olivelamp://run` links must carry; nil turns links off.
     private let linkToken: String?
     private var refreshing: Task<Void, Never>?
+    /// Counts refreshes, so one that was superseded does not clear its successor.
+    private var refreshCount = 0
     private var following: Task<Void, Never>?
 
     init(
@@ -38,11 +40,21 @@ final class PanelController {
 
     func refresh() {
         guard refreshing == nil else { return }
+        refreshCount += 1
+        let count = refreshCount
         refreshing = Task {
             await refreshOverview()
+            guard count == refreshCount else { return }
             refreshing = nil
             followRunStartedElsewhere()
         }
+    }
+
+    /// Drops a refresh in flight (of another server, or with an old entity type) and reads again.
+    private func refreshAgain() {
+        refreshing?.cancel()
+        refreshing = nil
+        refresh()
     }
 
     func panelOpened() {
@@ -52,12 +64,22 @@ final class PanelController {
 
     func select(_ server: Server) {
         guard server.id != model.selectedServer else { return }
+        directory.select(server.id)
+        serversChanged()
+    }
+
+    /// After a server was added, removed or selected. A new selection drops what the panel read from the previous one.
+    func serversChanged() {
+        guard directory.selected?.id != model.selectedServer else {
+            syncServers()
+            refresh()
+            return
+        }
         following?.cancel()
         following = nil
         model.dismissRun()
-        directory.select(server.id)
         syncServers()
-        refresh()
+        refreshAgain()
     }
 
     func syncServers() {
@@ -69,13 +91,13 @@ final class PanelController {
         case .inBrowser:
             openInBrowser()
         case .direct, .pick:
-            guard model.run?.execution.isActive != true else { return }
+            guard model.run?.execution.isActive != true, let server = shownServer else { return }
             let picked = model.picks[action.id] ?? [:]
             let reason = model.reasons[action.id] ?? action.justification
             model.clearStartProblem()
             following?.cancel()
             following = Task {
-                await runAction(action, picked: picked, reason: reason, history: model.history, notify: preferences.notifyWhenDone)
+                await runAction(action, on: server, picked: picked, reason: reason, history: model.history, notify: preferences.notifyWhenDone)
                 following = nil
                 refresh()
             }
@@ -85,15 +107,13 @@ final class PanelController {
     /// `type` is an entity type to list, or "" to list none.
     func showEntities(_ type: String) {
         try? chooseEntities(type)
-        refreshing?.cancel()
-        refreshing = nil
-        refresh()
+        refreshAgain()
     }
 
     /// The actions OliveTin binds to one machine, else the panel's actions set to it; nil when the server could not be
     /// read.
     func actions(of machine: Machine) async -> [Action]? {
-        guard let type = model.overview?.entityType else { return [] }
+        guard shownServer != nil, let type = model.overview?.entityType else { return [] }
         return try? await loadMachineActions(machine, entityType: type, offered: model.overview?.actions ?? [])
     }
 
@@ -111,6 +131,7 @@ final class PanelController {
         Task {
             refreshing?.cancel()
             refreshing = nil
+            refreshCount += 1
             await refreshOverview()
             guard request.server == nil || request.server == model.selectedServer else { return }
             guard let action = model.overview?.actions.first(where: { $0.id == request.actionID }) else {
@@ -154,13 +175,19 @@ final class PanelController {
         NSPasteboard.general.setString(output, forType: .string)
     }
 
+    /// The server the panel's overview was read from, while it is still the selected one.
+    private var shownServer: Server? {
+        guard let server = model.overview?.server, server.id == directory.selected?.id else { return nil }
+        return server
+    }
+
     /// A run started on the web page or by a schedule shows up in the panel too.
     private func followRunStartedElsewhere() {
-        guard following == nil, model.run?.execution.isActive != true,
+        guard following == nil, model.run?.execution.isActive != true, let server = shownServer,
               let active = model.history.first(where: \.isActive) else { return }
         model.show(RunProgress(execution: active, estimate: RunEstimate(history: model.history, actionID: active.actionID)))
         following = Task {
-            await runAction.follow(active, history: model.history)
+            await runAction.follow(active, on: server, history: model.history)
             following = nil
             refresh()
         }

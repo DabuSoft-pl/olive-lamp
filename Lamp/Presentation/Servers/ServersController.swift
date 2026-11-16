@@ -27,8 +27,7 @@ final class ServersController {
 
     func add(name: String, address: URL, signIn: SignInMethod, credential: Credential?) async throws(GatewayError) {
         _ = try await addServer(name: name, address: address, signIn: signIn, credential: credential)
-        panel.syncServers()
-        panel.refresh()
+        panel.serversChanged()
     }
 
     func signIn(_ server: Server, with credential: Credential) async throws(GatewayError) {
@@ -38,8 +37,7 @@ final class ServersController {
 
     func remove(_ server: Server) {
         try? directory.remove(server.id)
-        panel.syncServers()
-        panel.refresh()
+        panel.serversChanged()
     }
 
     /// "panel.example.ts.net" becomes "https://panel.example.ts.net"; anything that is not a web address is nil.

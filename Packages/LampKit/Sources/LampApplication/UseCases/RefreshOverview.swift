@@ -16,6 +16,7 @@ public final class RefreshOverview {
         self.catalog = catalog
     }
 
+    /// What it read is dropped when the user selected another server meanwhile, or the refresh was cancelled.
     public func callAsFunction() async {
         guard let server = directory.selected else {
             output?.showNoServer()
@@ -40,11 +41,17 @@ public final class RefreshOverview {
                 history: (try? await history) ?? [],
                 checkedAt: clock.now
             )
+            guard isCurrent(server) else { return }
             output?.show(overview)
             try? catalog?.publish(overview)
         } catch {
+            guard isCurrent(server) else { return }
             output?.showProblem(GatewayError.from(error), server: server)
         }
+    }
+
+    private func isCurrent(_ server: Server) -> Bool {
+        !Task.isCancelled && directory.selected?.id == server.id
     }
 
     private nonisolated static func entities(

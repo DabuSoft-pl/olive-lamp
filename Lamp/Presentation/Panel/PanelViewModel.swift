@@ -53,9 +53,16 @@ final class PanelViewModel: OverviewOutput, RunOutput {
         return .quiet
     }
 
+    /// Another server's overview or problem goes as soon as it is no longer the selected one.
     func setServers(_ servers: [Server], selected: UUID?) {
         self.servers = servers
         selectedServer = selected
+        if let overview, overview.server.id != selected { self.overview = nil }
+        switch content {
+        case .overview(let shown) where shown.server.id != selected: content = .loading
+        case .problem(_, let shown) where shown.id != selected: content = .loading
+        default: break
+        }
     }
 
     func panelOpened() {

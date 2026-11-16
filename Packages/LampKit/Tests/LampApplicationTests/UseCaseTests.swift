@@ -18,8 +18,11 @@ final class FakeGateway: OliveTinGateway, @unchecked Sendable {
     var reasons: [String?] = []
     var stopped: [String] = []
     private var readIndex = 0
+    /// Runs while `info()` is answered, as if the user did something during the read.
+    var duringInfo: (@MainActor () -> Void)?
 
     func info() async throws -> ServerInfo {
+        await duringInfo?()
         if let infoError { throw infoError }
         return serverInfo
     }
@@ -111,6 +114,17 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
     let credentials = MemoryCredentials()
     let recorder = Recorder()
 
+    let home = Server(name: "Homelab", address: URL(string: "https://panel.example.ts.net")!, signIn: .automatic)
+    let office = Server(name: "Office", address: URL(string: "https://office.example.com")!, signIn: .automatic)
+
+    /// Homelab and Office, with Homelab selected.
+    func twoServers(_ gateways: FakeGateways? = nil) -> ServerDirectory {
+        servers.servers = [home, office]
+        let directory = ServerDirectory(repository: servers, credentials: credentials, gateways: gateways ?? FakeGateways(gateway: gateway))
+        directory.select(home.id)
+        return directory
+    }
+
     func directory(withServer: Bool = true) -> ServerDirectory {
         if withServer {
             servers.servers = [Server(name: "Homelab", address: URL(string: "https://panel.example.ts.net")!, signIn: .automatic)]
@@ -128,9 +142,10 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         done.finishedAt = Date(timeIntervalSince1970: 10_030)  // 40 s: long enough to be worth a notification
         gateway.reads = [running("TASK [apt]"), done]
         let action = Action(id: "update", title: "Update", arguments: [ActionArgument(name: "confirm", title: "OK", kind: .confirmation)])
-        let run = RunAction(directory: directory(), clock: InstantClock(), output: recorder, notifier: recorder)
+        let directory = directory()
+        let run = RunAction(directory: directory, clock: InstantClock(), output: recorder, notifier: recorder)
 
-        await run(action, history: [], notify: true)
+        await run(action, on: directory.selected!, history: [], notify: true)
 
         #expect(gateway.started.first?.1 == ["confirm": "1"])
         #expect(recorder.runs.map(\.execution.state) == [.running, .running, .succeeded])
@@ -145,7 +160,7 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         killed.exitCode = -1
         gateway.reads = [running(), killed]
         try await StopRun(directory: directory, runs: run)(running())
-        await run(Action(id: "update", title: "Update"), history: [], notify: true)
+        await run(Action(id: "update", title: "Update"), on: directory.selected!, history: [], notify: true)
 
         #expect(gateway.stopped == ["run-1"])
         #expect(recorder.runs.last?.execution.state == .stopped)
@@ -154,17 +169,13 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
 
     @Test func stopReachesTheRunsOwnServerAfterASwitch() async throws {
         let gateways = FakeGateways(gateway: gateway)
-        let home = Server(name: "Homelab", address: URL(string: "https://panel.example.ts.net")!, signIn: .automatic)
-        let other = Server(name: "Office", address: URL(string: "https://office.example.com")!, signIn: .automatic)
-        servers.servers = [home, other]
-        let directory = ServerDirectory(repository: servers, credentials: credentials, gateways: gateways)
-        directory.select(home.id)
+        let directory = twoServers(gateways)
         let run = RunAction(directory: directory, clock: InstantClock(), output: recorder, notifier: nil)
         var done = running()
         done.isFinished = true
         gateway.reads = [done]
-        await run.follow(running(), history: [])
-        directory.select(other.id)
+        directory.select(office.id)
+        await run.follow(running(), on: home, history: [])
         gateways.addresses = []
 
         try await StopRun(directory: directory, runs: run)(running())
@@ -173,13 +184,43 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         #expect(gateway.stopped == ["run-1"])
     }
 
+    @Test func anActionReadFromAnotherServerDoesNotStart() async {
+        let directory = twoServers()
+        directory.select(office.id)
+        let run = RunAction(directory: directory, clock: InstantClock(), output: recorder, notifier: nil)
+
+        await run(Action(id: "update", title: "Update"), on: home, history: [], notify: false)
+
+        #expect(gateway.started.isEmpty)
+    }
+
+    @Test func aReadOfAServerNoLongerSelectedIsDropped() async {
+        let directory = twoServers()
+        gateway.duringInfo = { directory.select(self.office.id) }
+
+        await RefreshOverview(directory: directory, clock: InstantClock(), output: recorder)()
+
+        #expect(recorder.overviews.isEmpty)
+    }
+
+    @Test func aFailureOfAServerNoLongerSelectedIsDropped() async {
+        let directory = twoServers()
+        gateway.infoError = .unreachable("timed out")
+        gateway.duringInfo = { directory.select(self.office.id) }
+
+        await RefreshOverview(directory: directory, clock: InstantClock(), output: recorder)()
+
+        #expect(recorder.problems.isEmpty)
+    }
+
     @Test func aReasonGoesOnlyWithAnActionThatAsksForOne() async {
         var done = running()
         done.isFinished = true
         gateway.reads = [done]
-        let run = RunAction(directory: directory(), clock: InstantClock(), output: recorder, notifier: nil)
-        await run(Action(id: "prune", title: "Prune", justification: ""), reason: "  disk full \n", history: [], notify: false)
-        await run(Action(id: "check", title: "Check"), reason: "ignored", history: [], notify: false)
+        let directory = directory()
+        let run = RunAction(directory: directory, clock: InstantClock(), output: recorder, notifier: nil)
+        await run(Action(id: "prune", title: "Prune", justification: ""), on: directory.selected!, reason: "  disk full \n", history: [], notify: false)
+        await run(Action(id: "check", title: "Check"), on: directory.selected!, reason: "ignored", history: [], notify: false)
         #expect(gateway.reasons == ["disk full", nil])
     }
 
@@ -187,13 +228,15 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         var done = running()
         done.isFinished = true
         gateway.reads = [done]
-        await RunAction(directory: directory(), clock: InstantClock(), output: recorder, notifier: recorder)(Action(id: "update", title: "Update"), history: [], notify: false)
+        let directory = directory()
+        await RunAction(directory: directory, clock: InstantClock(), output: recorder, notifier: recorder)(Action(id: "update", title: "Update"), on: directory.selected!, history: [], notify: false)
         #expect(recorder.notified.isEmpty)
     }
 
     @Test func refusedStartIsShown() async {
         gateway.startError = .refused("confirmation required")
-        await RunAction(directory: directory(), clock: InstantClock(), output: recorder, notifier: recorder)(Action(id: "update", title: "Update"), history: [], notify: true)
+        let directory = directory()
+        await RunAction(directory: directory, clock: InstantClock(), output: recorder, notifier: recorder)(Action(id: "update", title: "Update"), on: directory.selected!, history: [], notify: true)
         #expect(recorder.startFailures == [.refused("confirmation required")])
         #expect(recorder.runs.isEmpty)
     }

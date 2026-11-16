@@ -24,10 +24,14 @@ public final class RunAction {
         self.notifier = notifier
     }
 
-    /// Starts `action` with `picked`, the user's choice per list argument (the rest take their defaults), and `reason`
-    /// when the action asks for one. `history` gives the estimate; `notify` sends a notification when the run ends.
-    public func callAsFunction(_ action: Action, picked: [String: String] = [:], reason: String? = nil, history: [Execution], notify: Bool) async {
-        guard let server = directory.selected else { return }
+    /// Starts `action`, read from `server`, with `picked`, the user's choice per list argument (the rest take their
+    /// defaults), and `reason` when the action asks for one. Nothing starts once `server` is no longer the selected one:
+    /// the action's hold, presets and choices are that server's. `history` gives the estimate; `notify` sends a
+    /// notification when the run ends.
+    public func callAsFunction(
+        _ action: Action, on server: Server, picked: [String: String] = [:], reason: String? = nil, history: [Execution], notify: Bool
+    ) async {
+        guard server.id == directory.selected?.id else { return }
         let gateway = directory.gateway(for: server)
         let id: String
         do {
@@ -45,9 +49,8 @@ public final class RunAction {
         if notify, last.deservesNotice() { notifier?.notifyFinished(last, server: server.name) }
     }
 
-    /// Follows a run started elsewhere (the web page, a schedule) until it ends.
-    public func follow(_ execution: Execution, history: [Execution]) async {
-        guard let server = directory.selected else { return }
+    /// Follows a run started elsewhere (the web page, a schedule), found on `server`, until it ends.
+    public func follow(_ execution: Execution, on server: Server, history: [Execution]) async {
         homes[execution.id] = server
         var last = execution
         await follow(id: execution.id, last: &last, estimate: RunEstimate(history: history, actionID: execution.actionID), gateway: directory.gateway(for: server))
