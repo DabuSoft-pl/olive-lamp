@@ -34,15 +34,16 @@ public struct RunRequest: Equatable, Sendable {
 
     public init?(url: URL) {
         guard url.scheme == "olivelamp", url.host() == "run",
-              let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems else { return nil }
+              let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedQueryItems else { return nil }
         var values: [String: String] = [:]
         var arguments: [String: String] = [:]
         for item in items {
-            guard let value = item.value else { continue }
-            if item.name.hasPrefix("arg.") {
-                arguments[String(item.name.dropFirst(4))] = value
+            // Form encoding, as JavaScript's URLSearchParams writes it: "+" is a space, a plus sign comes as %2B.
+            guard let name = Self.formDecoded(item.name), let value = item.value.flatMap(Self.formDecoded) else { continue }
+            if name.hasPrefix("arg.") {
+                arguments[String(name.dropFirst(4))] = value
             } else {
-                values[item.name] = value
+                values[name] = value
             }
         }
         guard let token = values["token"], !token.isEmpty, let action = values["action"], !action.isEmpty else { return nil }
@@ -52,6 +53,10 @@ public struct RunRequest: Equatable, Sendable {
         confirmed = values["confirmed"] == "1"
         reason = values["reason"]
         self.arguments = arguments
+    }
+
+    private static func formDecoded(_ text: String) -> String? {
+        text.replacingOccurrences(of: "+", with: " ").removingPercentEncoding
     }
 
     /// The token must match the catalog's, compared without leaking how much of it matched.

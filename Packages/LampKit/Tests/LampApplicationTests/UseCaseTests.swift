@@ -442,6 +442,13 @@ final class Recorder: OverviewOutput, RunOutput, RunNotifying {
         #expect(RunRequest(url: URL(string: "https://example.com/run?token=a&action=b")!) == nil)
     }
 
+    @Test func readsALinkAsRaycastWritesIt() throws {
+        // URLSearchParams: a space is "+", a plus sign is %2B.
+        let link = try #require(request("token=abc&action=update&reason=patch+day+%2B+reboot&arg.limit=nas"))
+        #expect(link.reason == "patch day + reboot")
+        #expect(link.arguments == ["limit": "nas"])
+    }
+
     @Test func tokenMustMatch() throws {
         let link = try #require(request("token=abc&action=a"))
         #expect(throws: Never.self) { try link.check(token: "abc") }
