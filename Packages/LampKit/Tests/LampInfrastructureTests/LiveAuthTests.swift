@@ -21,6 +21,27 @@ struct LiveAuthTests {
         #expect(!info.isSignedIn)
     }
 
+    /// A run's start, output and end arrive on the EventStream while it happens.
+    @Test func eventStreamTellsARunAsItHappens() async throws {
+        let gateway = gateway(.apiKey("olivelamp-test-key-0123456789abcdef"))
+        let hello = try #require(try await gateway.actions(dashboards: try await gateway.info().rootDashboards).first { $0.title == "Say hello" })
+        let seen = Task {
+            var events: [ServerEvent] = []
+            for try await event in gateway.events() {
+                events.append(event)
+                if case .executionFinished = event { break }
+                if events.count == 1 { _ = try await gateway.start(actionID: hello.id, arguments: [:], justification: nil) }
+            }
+            return events
+        }
+        let timeout = Task { try await Task.sleep(for: .seconds(20)); seen.cancel() }
+        let events = try await seen.value
+        timeout.cancel()
+        #expect(events.first == .heartbeat)
+        #expect(events.contains { if case .executionStarted(let e) = $0 { e.actionID == hello.id } else { false } })
+        #expect(events.contains { if case .executionFinished(let e) = $0 { e.actionID == hello.id && e.isFinished } else { false } })
+    }
+
     @Test func apiKeyRunsAnAction() async throws {
         let gateway = gateway(.apiKey("olivelamp-test-key-0123456789abcdef"))
         #expect(try await gateway.info().user == "automation")

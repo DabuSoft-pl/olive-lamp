@@ -19,6 +19,9 @@ final class PanelController {
     /// Counts refreshes, so one that was superseded does not clear its successor.
     private var refreshCount = 0
     private var following: Task<Void, Never>?
+    /// Reads the shown server's event stream, and the server it reads.
+    private var listening: Task<Void, Never>?
+    private var listeningTo: Server?
 
     init(
         model: PanelViewModel, directory: ServerDirectory, refreshOverview: RefreshOverview, runAction: RunAction,
@@ -47,6 +50,46 @@ final class PanelController {
             guard count == refreshCount else { return }
             refreshing = nil
             followRunStartedElsewhere()
+            listen()
+        }
+    }
+
+    /// Follows the shown server's EventStream, so runs started elsewhere, their end and entity changes show at once,
+    /// not at the next minute's refresh. Reconnects after a drop; polling goes on while it is down.
+    private func listen() {
+        guard let server = shownServer else { return }
+        guard server != listeningTo else { return }
+        listening?.cancel()
+        listeningTo = server
+        listening = Task {
+            var delay = 2.0
+            while !Task.isCancelled {
+                do {
+                    // Made again on every connect: signing in again changes the credential, not the server.
+                    for try await event in directory.gateway(for: server).events() {
+                        runAction.eventsLive = true
+                        delay = 2
+                        handle(event)
+                    }
+                } catch {}
+                runAction.eventsLive = false
+                try? await Task.sleep(for: .seconds(delay))
+                delay = min(delay * 2, 60)
+            }
+        }
+    }
+
+    private func handle(_ event: ServerEvent) {
+        switch event {
+        case .output(let id):
+            runAction.nudge(id)
+        case .executionFinished(let execution):
+            runAction.nudge(execution.id)
+            if following == nil { refresh() }  // a followed run refreshes when it ends
+        case .executionStarted, .changed:
+            refresh()
+        case .heartbeat:
+            break
         }
     }
 
@@ -77,6 +120,10 @@ final class PanelController {
         }
         following?.cancel()
         following = nil
+        listening?.cancel()
+        listening = nil
+        listeningTo = nil
+        runAction.eventsLive = false
         model.dismissRun()
         syncServers()
         refreshAgain()

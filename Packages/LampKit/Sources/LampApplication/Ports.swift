@@ -19,6 +19,27 @@ public protocol OliveTinGateway: Sendable {
     /// The newest runs first.
     func history() async throws -> [Execution]
     func stop(executionID: String) async throws
+    /// What happens on the server as it happens (OliveTin's EventStream). It ends or throws when the connection drops.
+    func events() -> AsyncThrowingStream<ServerEvent, any Error>
+}
+
+extension OliveTinGateway {
+    /// A server without events: the stream ends at once and the app keeps polling.
+    public func events() -> AsyncThrowingStream<ServerEvent, any Error> {
+        AsyncThrowingStream { $0.finish() }
+    }
+}
+
+/// One message of OliveTin's EventStream.
+public enum ServerEvent: Equatable, Sendable {
+    case executionStarted(Execution)
+    case executionFinished(Execution)
+    /// New output of a running execution.
+    case output(executionID: String)
+    /// Entities or the config changed: what the panel shows may be out of date.
+    case changed
+    /// Sent every 10 s; says the stream is alive.
+    case heartbeat
 }
 
 public enum GatewayError: Error, Equatable, Sendable {

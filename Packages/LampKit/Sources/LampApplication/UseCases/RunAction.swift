@@ -10,6 +10,12 @@ public final class RunAction {
     private weak var notifier: (any RunNotifying)?
     /// How often a running execution is read again.
     public var pollInterval = 1.0
+    /// How often it is read while the server's event stream is live: then an event wakes the read right away.
+    public var eventsPollInterval = 10.0
+    /// Set while the shown server's event stream delivers; `nudge` is then what keeps the run current.
+    public var eventsLive = false
+    /// The pause of each followed run, which `nudge` cuts short.
+    private var pauses: [String: Task<Void, Never>] = [:]
     /// Gives up following after this many failed reads in a row; the run itself goes on on the server.
     public var allowedMisses = 5
     /// Runs the user asked to stop, so their end reads as stopped, not failed.
@@ -59,11 +65,8 @@ public final class RunAction {
     private func follow(id: String, last: inout Execution, estimate: RunEstimate?, gateway: any OliveTinGateway) async {
         var misses = 0
         while !last.isFinished, misses < allowedMisses {
-            do {
-                try await clock.sleep(seconds: pollInterval)
-            } catch {
-                return  // cancelled
-            }
+            await pause(id)
+            if Task.isCancelled { return }
             do {
                 var read = try await gateway.execution(id: id)
                 if read.startedAt == nil { read.startedAt = last.startedAt }
@@ -75,6 +78,21 @@ public final class RunAction {
                 misses += 1
             }
         }
+    }
+
+    /// Waits until the next read: the poll interval, or less when an event about this run arrives.
+    private func pause(_ id: String) async {
+        let clock = clock
+        let seconds = eventsLive ? eventsPollInterval : pollInterval
+        let pause = Task { _ = try? await clock.sleep(seconds: seconds) }
+        pauses[id] = pause
+        await withTaskCancellationHandler { await pause.value } onCancel: { pause.cancel() }
+        pauses[id] = nil
+    }
+
+    /// Something happened to run `id` on the server (new output, its end): read it now.
+    public func nudge(_ id: String) {
+        pauses[id]?.cancel()
     }
 
     func markStopping(_ id: String) {

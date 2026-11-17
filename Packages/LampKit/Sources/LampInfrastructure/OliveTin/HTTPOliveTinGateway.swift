@@ -92,6 +92,23 @@ struct HTTPOliveTinGateway: OliveTinGateway {
     func stop(executionID: String) async throws {
         _ = try await client.call("KillAction", TrackingRequest(executionTrackingId: executionID), as: Empty.self)
     }
+
+    func events() -> AsyncThrowingStream<ServerEvent, any Error> {
+        let messages = client.stream("EventStream", Empty(), as: EventMessage.self)
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await message in messages {
+                        if let event = message.event { continuation.yield(event) }
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
 }
 
 /// Makes gateways on one shared session that keeps no cookies or cache of its own: every secret comes from the

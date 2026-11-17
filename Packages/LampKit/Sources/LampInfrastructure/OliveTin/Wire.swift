@@ -1,4 +1,5 @@
 import Foundation
+import LampApplication
 import LampDomain
 
 // OliveTin's messages as Connect sends them: protobuf JSON, lowerCamelCase, and every field with its default value
@@ -206,7 +207,7 @@ struct LogsReply: Decodable {
     var logs: [LogEntry]?
 }
 
-struct LogEntry: Decodable {
+struct LogEntry: Decodable, Sendable {
     var executionTrackingId: String?
     var bindingId: String?
     var actionTitle: String?
@@ -238,5 +239,28 @@ struct LogEntry: Decodable {
             blocked: blocked ?? false,
             canKill: canKill ?? false
         )
+    }
+}
+
+/// One EventStreamResponse; the oneof arrives as whichever key is present.
+struct EventMessage: Decodable, Sendable {
+    struct Entry: Decodable, Sendable { var logEntry: LogEntry? }
+    struct Chunk: Decodable, Sendable { var executionTrackingId: String? }
+    struct Nothing: Decodable, Sendable {}
+
+    var executionStarted: Entry?
+    var executionFinished: Entry?
+    var outputChunk: Chunk?
+    var entityChanged: Nothing?
+    var configChanged: Nothing?
+    var heartbeat: Nothing?
+
+    /// nil for an event this app does not know.
+    var event: ServerEvent? {
+        if let execution = executionStarted?.logEntry?.execution { return .executionStarted(execution) }
+        if let execution = executionFinished?.logEntry?.execution { return .executionFinished(execution) }
+        if let id = outputChunk?.executionTrackingId, !id.isEmpty { return .output(executionID: id) }
+        if entityChanged != nil || configChanged != nil { return .changed }
+        return heartbeat != nil ? .heartbeat : nil
     }
 }

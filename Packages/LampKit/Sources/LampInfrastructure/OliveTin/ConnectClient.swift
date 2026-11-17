@@ -30,6 +30,75 @@ struct ConnectClient: Sendable {
         }
     }
 
+    /// A server-streaming call: Connect frames each message as one flag byte, a big-endian length and the JSON. The last
+    /// frame (flag 2) ends the stream and may carry an error.
+    func stream<Request: Encodable & Sendable, Response: Decodable & Sendable>(
+        _ method: String, _ request: Request, as: Response.Type = Response.self
+    ) -> AsyncThrowingStream<Response, any Error> {
+        var urlRequest = makeRequest(method: method, body: request)
+        let json = urlRequest.httpBody ?? Data("{}".utf8)
+        urlRequest.httpBody = Self.frame(json)
+        urlRequest.setValue("application/connect+json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("application/connect+json", forHTTPHeaderField: "Accept")
+        // The server sends a heartbeat every 10 s; this long without a byte means the connection is gone.
+        urlRequest.timeoutInterval = 35
+        let session = session
+        let streamRequest = urlRequest
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    let (bytes, response) = try await session.bytes(for: streamRequest, delegate: NoRedirects.shared)
+                    guard let http = response as? HTTPURLResponse else { throw GatewayError.notOliveTin }
+                    let contentType = http.value(forHTTPHeaderField: "Content-Type")
+                    guard http.statusCode == 200, contentType?.lowercased().hasPrefix("application/connect+json") == true else {
+                        var body = Data()
+                        for try await byte in bytes.prefix(64 * 1024) { body.append(byte) }
+                        try Self.check(status: http.statusCode, contentType: contentType, body: body)
+                        throw GatewayError.notOliveTin
+                    }
+                    var buffer = Data()
+                    for try await byte in bytes {
+                        buffer.append(byte)
+                        while let (flags, message) = Self.unframe(&buffer) {
+                            if flags & 2 != 0 {
+                                if let end = try? JSONDecoder().decode(EndOfStream.self, from: message), let error = end.error {
+                                    let code = error.code ?? ""
+                                    throw (code == "unauthenticated" || code == "permission_denied")
+                                        ? GatewayError.signInNeeded : GatewayError.refused(error.message ?? code)
+                                }
+                                continuation.finish()
+                                return
+                            }
+                            continuation.yield(try JSONDecoder().decode(Response.self, from: message))
+                        }
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    static func frame(_ message: Data) -> Data {
+        var data = Data([0])
+        withUnsafeBytes(of: UInt32(message.count).bigEndian) { data.append(contentsOf: $0) }
+        return data + message
+    }
+
+    /// Takes one whole frame off the front of `buffer`, or nil while it is still incomplete.
+    static func unframe(_ buffer: inout Data) -> (flags: UInt8, message: Data)? {
+        guard buffer.count >= 5 else { return nil }
+        let start = buffer.startIndex
+        let length = buffer[start + 1 ..< start + 5].reduce(0) { $0 << 8 | Int($1) }
+        guard buffer.count >= 5 + length else { return nil }
+        let flags = buffer[start]
+        let message = Data(buffer[start + 5 ..< start + 5 + length])
+        buffer = Data(buffer.dropFirst(5 + length))
+        return (flags, message)
+    }
+
     func makeRequest(method: String, body: some Encodable) -> URLRequest {
         var request = URLRequest(url: Self.endpoint(address: address, method: method), timeoutInterval: 15)
         request.httpMethod = "POST"
@@ -87,6 +156,11 @@ struct ConnectClient: Sendable {
 struct ConnectError: Decodable {
     var code: String?
     var message: String?
+}
+
+/// The last frame of a Connect stream.
+struct EndOfStream: Decodable {
+    var error: ConnectError?
 }
 
 struct Empty: Codable, Sendable {}

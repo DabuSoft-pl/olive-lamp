@@ -250,3 +250,36 @@ struct MockServerTests {
         #expect(JSONActionCatalog(directory: directory).token == catalog.token)
     }
 }
+
+@Suite struct EventStreamTests {
+    @Test func framesSplitAcrossReadsComeOutWhole() throws {
+        let first = ConnectClient.frame(Data(#"{"heartbeat":{}}"#.utf8))
+        var end = ConnectClient.frame(Data("{}".utf8))
+        end[end.startIndex] = 2
+        let all = first + end
+        var buffer = Data(all.prefix(7))
+        #expect(ConnectClient.unframe(&buffer) == nil)
+        buffer += all.dropFirst(7)
+        let one = try #require(ConnectClient.unframe(&buffer))
+        #expect(one.flags == 0)
+        #expect(try JSONDecoder().decode(EventMessage.self, from: one.message).event == .heartbeat)
+        let two = try #require(ConnectClient.unframe(&buffer))
+        #expect(two.flags == 2)
+        #expect(buffer.isEmpty)
+    }
+
+    /// EventStreamResponse as OliveTin 3000.22 sends it.
+    @Test func eventsFromTheWire() throws {
+        func event(_ json: String) throws -> ServerEvent? {
+            try JSONDecoder().decode(EventMessage.self, from: Data(json.utf8)).event
+        }
+        let finished = try event(#"{"executionFinished":{"logEntry":{"executionTrackingId":"t1","bindingId":"ping","actionTitle":"Ping","executionFinished":true,"exitCode":1}}}"#)
+        guard case .executionFinished(let execution) = finished else { Issue.record("not finished: \(String(describing: finished))"); return }
+        #expect(execution.id == "t1")
+        #expect(execution.state == .failed)
+        #expect(try event(#"{"outputChunk":{"executionTrackingId":"t1","output":"hi"}}"#) == .output(executionID: "t1"))
+        #expect(try event(#"{"entityChanged":{}}"#) == .changed)
+        #expect(try event(#"{"configChanged":{}}"#) == .changed)
+        #expect(try event(#"{"somethingNew":{}}"#) == nil)
+    }
+}

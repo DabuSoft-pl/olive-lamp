@@ -30,12 +30,14 @@ Domain  <-  Application  <-  Infrastructure
   into unreachable, sign-in needed, not OliveTin, refused.
 - `LampInfrastructure` — `ConnectClient` (Connect RPC: `POST` JSON to `/api/olivetin.api.v1.OliveTinApiService/<Method>`,
   no redirects followed, no cookie store; the credential becomes `Authorization: Bearer`, chosen headers or a `Cookie`
-  line), `Wire.swift` (protobuf JSON, lowerCamelCase, defaults omitted, so every field is optional), `OliveTinTime`
+  line; `EventStream` is a Connect server stream of `application/connect+json` frames, heartbeat every 10 s), `Wire.swift` (protobuf JSON, lowerCamelCase, defaults omitted, so every field is optional), `OliveTinTime`
   (server-local "2006-01-02 15:04:05", "0001…" means not yet), `HTTPOliveTinGateway`, `KeychainCredentialStore`,
   `JSONServerRepository` (`~/Library/Application Support/Olive Lamp/servers.json`, 0700/0600, never secrets),
   `JSONActionCatalog` (`actions.json` beside it, 0600: the shown server's actions and the link token, for Raycast),
   `SystemClock`.
-- `Lamp/App` — `LampApp`, `AppContainer` (refreshes now and every 60 s), `Snapshot` (Debug only:
+- `Lamp/App` — `LampApp`, `AppContainer` (refreshes now and every 60 s; `PanelController` also listens to the shown
+  server's EventStream: a run's start or end, entity and config changes refresh at once, output nudges `RunAction`,
+  which then reads every 10 s instead of every 1 s), `Snapshot` (Debug only:
   `"Olive Lamp.app/Contents/MacOS/Olive Lamp" -snapshot <folder>` renders the panel against the saved servers),
   `Screenshots` (Debug only, `make screenshots`: README images from made-up data, through real AppKit windows).
 - `Lamp/Platform` — `Preferences` (UserDefaults), `UserNotificationsAdapter`, `StatusItemMenu` (right click on the lamp:
